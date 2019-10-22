@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Data specifics
+notebooks/example_data/*keV.fits
+
 # C extensions
 *.so
 

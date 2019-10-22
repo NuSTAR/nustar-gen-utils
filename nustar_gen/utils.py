@@ -21,3 +21,4 @@ def energy_to_chan(keV):
     '''
     return int((keV - 1.6) / 0.04)
 
+
