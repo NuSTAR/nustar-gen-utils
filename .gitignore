@@ -5,6 +5,12 @@ __pycache__/
 
 # Data specifics
 notebooks/example_data/*keV.fits
+notebooks/*fits
+
+# macOS
+.DS_Store
+*/.DS_Store
+*~
 
 # C extensions
 *.so
