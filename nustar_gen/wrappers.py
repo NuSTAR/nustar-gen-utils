@@ -4,7 +4,7 @@ import warnings
 from nustar_gen.utils import energy_to_chan
 
 
-def make_image(infile, elow = 3, ehigh = 20, clobber=True):
+def make_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False):
     '''
     Spawn an xselect instance that produces the image in the energy range.
     
@@ -26,10 +26,21 @@ def make_image(infile, elow = 3, ehigh = 20, clobber=True):
             pass
     except IOError:
         raise IOError("make_image: File does not exist %s" % (infile))
+
+    if not outpath:
+        outdir=os.path.dirname(infile)
+    else:
+        outdir=outpath
     
+    # Trime the filename:
+    sname=os.path.basename(infile)
+    if sname.endswith('.gz'):
+        sname = os.path.splitext(sname)[0]
+    sname = os.path.splitext(sname)[0]
     
     # Generate outfile name
-    outfile = (os.path.splitext(infile))[0]+'_{}to{}keV.fits'.format(int(elow), int(ehigh))
+    outfile = outdir + '/'+sname+f'_{elow}to{ehigh}keV.fits'
+       
     if (os.path.exists(outfile)) & (~clobber):
         warnings.warn('make_image: %s exists, use clobber=True to regenerate' % (outfile))
     else:
