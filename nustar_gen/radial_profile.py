@@ -8,6 +8,9 @@ from astropy.wcs import WCS
 from matplotlib import pyplot as plt
 import numpy as np
 import astropy.units as u
+import warnings
+from astropy.wcs import FITSFixedWarning
+warnings.filterwarnings('ignore', category=FITSFixedWarning, append=True)
 
 def load_psf(rind, energy=4, filt_range = 5, show=False):
     '''
@@ -89,7 +92,7 @@ def azimuthalAverage(image, center=None):
 
     return radial_prof, radial_err
 
-def find_source(filename, show_image=False, filt_range =20):
+def find_source(filename, show_image=False, filt_range =10, gauss_sig=3):
     '''
     Find a source in the image. Returns the location in pixel_coordiantes.
     
@@ -97,44 +100,56 @@ def find_source(filename, show_image=False, filt_range =20):
     
     '''
     
-
     hdu = fits.open(filename, uint=True)[0]
     wcs = WCS(hdu.header)
 
     im = hdu.data  
-    im2 = ndi.maximum_filter(im, size=filt_range)
-    coordinates = peak_local_max(im, min_distance=filt_range, threshold_abs=0.5*im2.max())
+    im2 = ndi.gaussian_filter(im.astype(float), sigma=gauss_sig)
+    im3 = ndi.maximum_filter(im2, size=filt_range)
+    coordinates = peak_local_max(im2, min_distance=filt_range, threshold_abs=0.75*im2.max())
     
+    
+    if len(coordinates) == 0:
+        print('No sources found')
     
     if show_image:
-        fig = plt.figure(figsize=[8, 4])
-        ax = fig.add_subplot(121, projection=wcs)
-        ax2 = fig.add_subplot(122, projection=wcs)
+        fig = plt.figure(figsize=[12, 4])
+        ax = fig.add_subplot(131, projection=wcs)
+        ax2 = fig.add_subplot(132)
+        ax3 = fig.add_subplot(133)
 
 
-    #image_max = ndi.maximum_filter(im, size=filt_range, mode='constant')
-    #com = ndi.measurements.maximum_position(im, index=True)
+
+
 
         ax.imshow(im, origin='lower', cmap=plt.cm.viridis)
+        ax.set_title('Raw Image')
+
+        imrange = [250, 750]
+        
         ax2.imshow(im2, origin='lower', cmap=plt.cm.viridis)
+        ax2.set_title('Smoothed Image')
+        ax2.axis('off')
+        
+        ax3.imshow(im3, origin='lower', cmap=plt.cm.viridis)
 
-
-        ax.plot(coordinates[0][1], coordinates[0][0], 'rx')
-        ax2.plot(coordinates[0][1], coordinates[0][0], 'rx')
-
+        ax3.set_title('Filtered Image')
+        ax2.axis('Off')
         ax.set_xlabel('RA')
         ax.set_ylabel('Dec')
-        ax2.set_xlabel('RA')
-        ax2.set_ylabel('Dec')
+        
+        if len(coordinates) > 0:
+            for coord in coordinates:
+                ax.plot(coord[1], coord[0], 'rx')
+                ax2.plot(coord[1], coord[0], 'rx')
+                ax3.plot(coord[1], coord[0], 'rx')
 
-        range = [-100, 100]
-        ax.set_xbound(range + coordinates[0][1])
-        ax.set_ybound(range+coordinates[0][0])
-        ax.set_title('Raw Image')
-        ax2.set_xbound(range + coordinates[0][1])
-        ax2.set_ybound(range+coordinates[0][0])
-        ax2.set_title('Filtered Image')
-
+        ax2.set_xbound(imrange)
+        ax2.set_ybound(imrange)
+        ax.set_xbound(imrange)
+        ax.set_ybound(imrange)
+        ax3.set_xbound(imrange)
+        ax3.set_ybound(imrange)
 
         plt.show()
         
