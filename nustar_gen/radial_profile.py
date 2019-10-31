@@ -304,13 +304,12 @@ def optimize_radius_snr(rind, rad_profile, radial_err, psf_profile,
         ax.errorbar(rind, rad_profile, radial_err, fmt='r.', label = 'Data')
         ax.plot(rind, profile_model(rind, *popt), label = 'Combined Model')
         ax.plot(rind, profile_model(rind, popt[0], 0,0), label = 'Source Only')
-        ax.semilogy(rind, bgd, label = 'BGD Only')
-        ax.set_ylim([0.5*bgd[mask].min(), 2*rad_profile.max()])
+        ax.plot(rind, bgd, label = 'BGD Only')
+        ax.set_ylim([0.5*bgd[mask].min(), 1.1*rad_profile.max()])
         ax.legend()
         ax.set_xlabel('Radius (arcsec)')
         ax.set_ylabel('Counts / arcsec**2')
         ax.set_xlim([0.9*rind.min(), rlimit])
-
 
         ax.set_title('Best Fit')
         ax.axvline(x=best_radius*dr)
