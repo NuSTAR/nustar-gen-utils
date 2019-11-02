@@ -12,6 +12,9 @@ class NuSTAR():
 	
 	def __init__(self):
 		self.mjdref = Time(55197., format = 'mjd')
+		self.raw_pixel = 604.8 * u.micron
+		self.pixel_um = self.raw_pixel / 5.
+		self.pixel = 2.54 * u.arcsec
 
 
 	def time_to_met(self, time):
@@ -27,6 +30,7 @@ class NuSTAR():
 		'''
 		this_time = TimeDelta(met*u.s) + self.mjdref
 		return this_time
+
 
 
 class Observation():
@@ -186,7 +190,33 @@ class Observation():
 			for ti in range(5):
 				keystr = f'{mod}'+f'{ti+1}'.zfill(2)
 				if keystr in self._exposure:
-					print(f'Exposure for FPM{mod} is: {1e-3*self._exposure[keystr]:10.4} ks')
+					print(f'Exposure for FPM{mod}, mode '+f'{ti+1}'.zfill(2)+f' is: {1e-3*self._exposure[keystr]:10.4} ks')
 
 			print()
-		
+# 	
+# 	
+# 	def download_bgd_reprort(self):
+# 	    '''
+# 	    Wrappers to download the background report from the SOC:
+# 	    
+# 	    http://www.srl.caltech.edu/NuSTAR_Public/NuSTAROperationSite/SAA_Filtering/nulyses_reports/10001002001/nu10001002001_SAA_Report_A.pdf
+# 	    '''
+# 	
+#         base_html = 'http://www.srl.caltech.edu/NuSTAR_Public/NuSTAROperationSite/'
+#         base_html += 'SAA_Filtersing/nuluyses_reports/'
+#         base_html += self.seqid+'/nu'+self.seqid+'_SAA_Report_'
+#         
+#         
+#         A.pdf
+# 	    
+# 	
+# 	
+# 	
+# 	
+	
+	
+	
+	
+	
+	
+	
