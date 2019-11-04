@@ -36,6 +36,14 @@ From the shell:
 
     pip install -e .
 
+Sphinx
+------------
+To build the documentation, from the shell:
+
+.. code-block:: bash
+
+    sphinx-build docs docs/_build
+
 
 Contributing
 ------------
