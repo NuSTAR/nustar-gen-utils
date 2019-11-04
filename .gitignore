@@ -4,8 +4,9 @@ __pycache__/
 *$py.class
 
 # Data specifics
-notebooks/example_data/*keV.fits
+notebooks/example_data/*/*/*keV.fits
 notebooks/*fits
+notebooks/example_data/*/products
 
 # macOS
 .DS_Store
