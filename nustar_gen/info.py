@@ -8,6 +8,22 @@ class NuSTAR():
     '''
     Class for holding constant attributes
     
+    Parameters
+    -----------
+    
+    mjdref: Astropy Time
+        Contains the integer part of the MJDREF date (Jan 1, 2010) for
+        the NuSTAR MET epoch.
+    
+    pixel: float
+        Size of a sky pixel (2.54 arcsec)
+    
+    raw_pixel: float
+        Contains the ideal pixel pitch in NuSTAR (604.8 microns)
+    
+    pixel_um: float
+        Size of a DET1 pixel (raw_pixel / 5)
+        
     '''
     
     def __init__(self):
@@ -16,14 +32,15 @@ class NuSTAR():
         self.pixel_um = self.raw_pixel / 5.
         self.pixel = 2.54 * u.arcsec
 
-
+    @classmethod
     def time_to_met(self, time):
         ''' 
         Convert a datetime object to a unitless NuSTAR MET second.
         '''
         dt = (time - self.mjdref).to(u.s).value
         return dt
-        
+    
+    @classmethod
     def met_to_time(self, met):
         '''
         Assumes unitless MET seconds input. Need to catch this.
@@ -39,33 +56,21 @@ class Observation():
     
     Parameters
     ----------
-    path : string
-       The working directory. Defaults to the current directory.
-
-    Methods
-    ----------
-    :
-        
+    path: str, optional, default './'
+        The top-level working directory. All paths are assumed to be relative to this
+        location.
     
-    exposure_report:
-        Finds all of the cleaned event files, parses the 
+    seqid: str
+        The sequence id that you're going to be working with. Data are assumed to be
+        obs.path+os.seqid+`/event_cl/`. Set via set_seqid.
 
-    download_bgd_report:
-        Downloads the background reprot from the SOC.
-        
-    Attributes
-    -----------
-    path: 'str'
-        Working directory
-        
-    seqid: 'str'
-        Data are assumed to be in obs.path+obs.seqid
-        
-    out_path: 'str'
-        Output directory.
-        
-    source_position: Astropy SkyCoord object
-    
+    exposure: dict
+        'A' and 'B' keys give a list of the exposure times for each event file.
+                
+    source_position: Astropy SkyCoord
+        J2000 coordinates of the source based on
+        the FITS header.
+
     
     '''
         
@@ -83,13 +88,14 @@ class Observation():
     @property
     def seqid(self):
         '''
-        Returns the current sequence ID
+        Returns the current sequence ID. Data are assumed to be in obs.path+obs.method
         '''
         return self._seqid
         
     @seqid.setter
     def set_seqid(self, value):
-        '''Set the sequence ID. Raise error if path+sequence doesn't exist'''
+        '''Set the sequence ID. Raise error if path+sequence doesn't exist. Finds
+        clean event files and parses the input fits header to populate the other'''
         if os.path.isdir(self.path+value):
             self._seqid = value
         else:
@@ -108,22 +114,23 @@ class Observation():
     @property
     def exposure(self):
         '''
-        Returns the current sequence ID
+        Returns an dict (with 'A' and 'B' as keys) with lists of exposures for
+        all event files.
         '''
         return self._exposure
         
     @property
     def source_position(self):
         '''
-        Returns the current sequence ID
+        Returns the current source RA/Dec from the FITS headers as Astropy
+        SkyCoord object
         '''
         return self._source_position
 
-    
     @property
     def science_files(self):
         '''
-        Returns the current sequence ID
+        Returns a list of science (01) event files
         '''
         
         if self._seqid is False:
@@ -142,14 +149,14 @@ class Observation():
     @property
     def out_path(self):
         '''
-        Returns the current sequence ID
+        Returns the output path.
         '''
         return self._out_path
 
     @out_path.setter
     def set_outpath(self, value):
         '''
-        Returns the current sequence ID
+        Set the output path.
         '''
         
         if os.path.isdir(self.path+value):
@@ -158,10 +165,7 @@ class Observation():
             raise ValueError(f"Output path does not exist! {self.path+value})")
         return self._out_path
 
-
-
-
-
+    @classmethod
     def _find_cleaned_files(self):
         '''
         Uses self._evdir to find all of the cleaned event files.
@@ -171,7 +175,7 @@ class Observation():
             self._evtfiles[mod] = sorted(glob.glob(self._evdir+f'nu*{mod}*cl.evt*'))
         return
         
-    
+    @classmethod
     def _parse_header(self):
         from astropy.io.fits import getheader
         from astropy.coordinates import SkyCoord
@@ -195,7 +199,7 @@ class Observation():
         return
         
 
-
+    @classmethod
     def exposure_report(self):
         '''
         Make pretty output of the exposure
@@ -214,11 +218,10 @@ class Observation():
 
         return
 
+    @classmethod
     def download_bgd_report(self):
         '''
         Wrappers to download the background report from the SOC:
-
-        http://www.srl.caltech.edu/NuSTAR_Public/NuSTAROperationSite/SAA_Filtering/nulyses_reports/10001002001/nu10001002001_SAA_Report_A.pdf
         '''
 
         base_html = 'http://www.srl.caltech.edu/NuSTAR_Public/NuSTAROperationSite/'
