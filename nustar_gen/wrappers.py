@@ -9,21 +9,22 @@ def make_exposure_map(obs, mod, vign_energy = False,
     '''
     Spawn an instance of nuexpomap to produce an exposure map.
     
-    Inputs
-    --------
+    Parameters
+    ----------
     
-    Requires a nustar_gen.info.Observation() object and a module.
-    
-    obs: nustar_gen.info.Observation() object
-    
+    obs: nustar_gen.info.Observation(), required
+        A valid observation metadata.
+                
     mod: str
         'A' or 'B'
     
-
-    Optional Inputs
+    Other Parameters
     ----------------
-    vign_energy: float
-        Energy where you want to apply the vignetting
+    vign_energy: float, optional
+        Energy where you want to apply the vignetting. Default is no vignetting.
+    
+    det_expo : boolean, optional, default=False
+        Whether or not to retain the DET1 exposure map file
 
     '''
     import glob
@@ -84,14 +85,30 @@ def make_exposure_map(obs, mod, vign_energy = False,
 def make_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False):
     '''
     Spawn an xselect instance that produces the image in the energy range.
+
+    Parameters
+    ----------
+    infile: str
+        Full path tot eh file that you want to process
+    elow: float
+        Low-energy band for the image
+    ehigh: float
+        High-energy band for the image
+        
+    Other Parameters
+    ----------------
     
-    - Checks that input file exists
-    - Checks if output file exists. If yes and clobber=False, just returns the output filename.
-    - If outfile does not exist or file exists and clobber=True, then converts the input energy range
-          to PI channels and then generates an Xselect command file.
-    - Spawns an instance of Xselect running in the background.
-    - Returns the outfile name
-    
+    clobber: boolean, optional, default=True
+        Overwrite existing files?
+
+    outpath: str, optional, default=os.path.dirname(infile)
+        Set the destination for output. Defaults to same location as infile.
+   
+    Return
+    -------
+    outfile: str
+        The full path to the output image.
+   
     '''
     # Make sure environment is set up properly
     _check_environment()
@@ -132,6 +149,32 @@ def extract_det1_events(infile, regfile, clobber=True, outpath=False):
     '''
     Spawn an xselect instance that produces a new event file screened using a det1 region
     file.
+    
+    Parameters
+    ----------
+    infile: str
+        Full path tot eh file that you want to process
+    regfile: str
+        Full path to a ds9 region file (in physical coordinates) to be used to filter
+        the events.
+                
+    Other Parameters
+    ----------------
+    
+    clobber: boolean, optional, default=True
+        Overwrite existing files?
+
+    outpath: str, optional, default=os.path.dirname(infile)
+        Set the destination for output. Defaults to same location as infile.
+   
+    Return
+    -------
+    outfile: str
+        The full path to the output image.
+   
+
+    
+    
     '''
 
     # Make sure environment is set up properly
@@ -176,9 +219,6 @@ def extract_det1_events(infile, regfile, clobber=True, outpath=False):
     os.system("xselect @"+xsel_file)
     os.system("rm -r -f "+xsel_file)
     
-    return outfile
-
-    
     
     return outfile
 
@@ -218,15 +258,30 @@ def _make_xselect_commands_det1_evts(infile, outfile, regfile):
 
 def make_det1_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False):
     '''
-    Spawn an xselect instance that produces the image in the energy range.
+    Spawn an xselect instance that produces a DET1 image in the energy range.
     
-    - Checks that input file exists
-    - Checks if output file exists. If yes and clobber=False, just returns the output filename.
-    - If outfile does not exist or file exists and clobber=True, then converts the input energy range
-          to PI channels and then generates an Xselect command file.
-    - Spawns an instance of Xselect running in the background.
-    - Returns the outfile name
+    Parameters
+    ----------
+    infile: str
+        Full path tot eh file that you want to process
+    elow: float
+        Low-energy band for the image
+    ehigh: float
+        High-energy band for the image
+        
+    Other Parameters
+    ----------------
     
+    clobber: boolean, optional, default=True
+        Overwrite existing files?
+
+    outpath: str, optional, default=os.path.dirname(infile)
+        Set the destination for output. Defaults to same location as infile.
+   
+    Return
+    -------
+    outfile: str
+        The full path to the output image.
     
     '''
     # Make sure environment is set up properly

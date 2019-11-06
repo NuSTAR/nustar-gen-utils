@@ -17,8 +17,8 @@ conf.read(['setup.cfg'])
 metadata = dict(conf.items('metadata'))
 
 PACKAGENAME = metadata.get('package_name', 'astroduet')
-DESCRIPTION = metadata.get('description', ' Dynamic Ultraviolet Explorer Telescope')
-AUTHOR = metadata.get('author', 'DUET mission design group')
+DESCRIPTION = metadata.get('description', ' NuSTAR General Utilities')
+AUTHOR = metadata.get('author', 'NuSTAR Working Group')
 AUTHOR_EMAIL = metadata.get('author_email', '')
 LICENSE = metadata.get('license', 'unknown')
 URL = metadata.get('url', '""')
@@ -27,7 +27,7 @@ __minimum_python_version__ = metadata.get("minimum_python_version", "3.6")
 # Enforce Python version check - this is the same check as in __init__.py but
 # this one has to happen before importing ah_bootstrap.
 if sys.version_info < tuple((int(val) for val in __minimum_python_version__.split('.'))):
-    sys.stderr.write("ERROR: astroduet requires Python {} or later\n".format(__minimum_python_version__))
+    sys.stderr.write("ERROR: nustar_gen requires Python {} or later\n".format(__minimum_python_version__))
     sys.exit(1)
 
 # Import ah_bootstrap after the python version validation
@@ -73,7 +73,7 @@ else:
 builtins._ASTROPY_PACKAGE_NAME_ = PACKAGENAME
 
 # VERSION should be PEP440 compatible (http://www.python.org/dev/peps/pep-0440)
-VERSION = metadata.get('version', '0.0.dev')
+VERSION = metadata.get('version', '0.1.dev')
 
 # Indicates if this version is a release version
 RELEASE = 'dev' not in VERSION
