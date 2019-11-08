@@ -206,7 +206,6 @@ class Observation():
                             self._exposure[keystr] = hdr['EXPOSURE']
                         else:
                             self._exposure[keystr] += hdr['EXPOSURE']
-                        print(keystr, evtfile, self._exposure[keystr])
 
         return
         

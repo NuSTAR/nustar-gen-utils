@@ -4,6 +4,94 @@ import warnings
 from nustar_gen.utils import energy_to_chan
 from astropy import units as u
 
+def make_spectra(infile, mod, src_reg,
+    mode='01', bgd_reg='None', outpath='None'):
+    '''
+    Generate a script to run nuproducts to extract a source (and optionally
+    a background) spectrum along with their response files.
+    
+    Always runs numkrmf and numkarf for now.
+    
+    Parameters
+    ----------
+    
+    infile: str
+        Full path to the input event file.
+    
+    mod: str
+        'A' or 'B'
+        
+    src_reg: str
+        Full path to source region.
+    
+    
+    Optional Parameters
+    -------------------
+    
+
+    bgd_reg: str
+        If not 'None', then must be the full path to the background region file
+
+    barycorr: bool 
+    
+    outpath: str
+        Optional. Default is to put the lightcurves in the same location as infile
+        
+    mode: str
+        Optional. Used primarily if you're doing mode06 analysis and need to specify
+        output names that are more complicated.
+
+    '''
+
+    from astropy.io.fits import getheader
+
+    # Make sure environment is set up properly
+    _check_environment()
+
+    # Check to see that all files exist:
+    assert os.path.isfile(infile), 'make_spectra: infile does not exist!'
+    assert os.path.isfile(src_reg), 'make_spectra: src_reg does not exist!'
+
+    if bgd_reg is not 'None':
+        assert os.path.isfile(bgd_reg), 'make_spectra: bgd_reg does not exist!'
+        bkgextract='yes'
+    else:
+        bkgextract='no'
+
+    reg_base = os.path.basename(src_reg)
+    reg_base = os.path.splitext(reg_base)[0]
+    
+    evdir = os.path.dirname(infile)
+    
+    seqid = os.path.basename(os.path.dirname(evdir))
+    
+    if outpath is 'None':
+        outdir = evdir
+    else:
+        outdir = outpath
+        
+    stemout = f'nu{seqid}{mod}{mode}_{reg_base}'
+    lc_script = outdir+f'/runspec_{stemout}.sh'    
+    
+    
+   
+    with open(lc_script, 'w') as f:
+        f.write('nuproducts imagefile=NONE lcfile=NONE bkglcfile=NONE ')
+        f.write('runmkarf=yes runmkrmf=yes ')
+        f.write(f'indir={evdir} outdir={outdir} instrument=FPM{mod} ')
+        f.write(f'steminputs=nu{seqid} stemout={stemout} ')
+        f.write(f'srcregionfile={src_reg} ')
+        
+        if bkgextract is 'no':
+            f.write(f'bkgextract=no ')
+        else:
+            f.write(f'bkgextract=yes bkgregionfile={bgd_reg} ')
+             
+        f.write('clobber=yes')
+        
+    os.chmod(lc_script, stat.S_IRWXG+stat.S_IRWXU)
+    return lc_script
+
 
 
 def make_lightcurve(infile, mod, src_reg,
