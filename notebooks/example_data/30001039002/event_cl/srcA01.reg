@@ -1,0 +1,3 @@
+# Region file format: DS9 astropy/regions
+fk5
+circle(84.918732,-69.742216,60.000000")
