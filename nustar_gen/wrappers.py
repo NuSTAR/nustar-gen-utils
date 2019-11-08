@@ -2,6 +2,115 @@ import os, stat
 import warnings
 
 from nustar_gen.utils import energy_to_chan
+from astropy import units as u
+
+
+
+def make_lightcurve(infile, mod, src_reg,
+    barycorr=False, time_bin=100*u.s, mode='01',
+    bgd_reg='None', outpath='None', elow=3, ehigh=20):
+    '''
+    Generate a script to run nuproducts
+    
+    Parameters
+    ----------
+    
+    infile: str
+        Full path to the input event file.
+    
+    mod: str
+        'A' or 'B'
+        
+    src_reg: str
+        Full path to source region.
+    
+    
+    Optional Parameters
+    -------------------
+    
+
+    bgd_reg: str
+        If not 'None', then must be the full path to the background region file
+
+    barycorr: bool 
+        Default is 'False'. If 'True', then queries the infile for the OBJ J2000
+        coordinates and uses these for the barycenter correction.
+        
+    elow: float
+        Low-eneryg bound. Default is 3 keV.
+    
+    ehigh: float
+        High-energy bound. Default is 20 keV.
+    
+    outpath: str
+        Optional. Default is to put the lightcurves in the same location as infile
+        
+    mode: str
+        Optional. Used primarily if you're doing mode06 analysis and need to specify
+        output names that are more complicated.
+
+    '''
+
+    from astropy.io.fits import getheader
+
+    # Make sure environment is set up properly
+    _check_environment()
+
+    # Check to see that all files exist:
+    assert os.path.isfile(infile), 'make_lightcurve: infile does not exist!'
+    assert os.path.isfile(src_reg), 'make_lightcurve: src_reg does not exist!'
+
+    if bgd_reg is not 'None':
+        assert os.path.isfile(bgd_reg), 'make_lightcurve: bgd_reg does not exist!'
+        bkgextract='yes'
+    else:
+        bkgextract='no'
+
+    reg_base = os.path.basename(src_reg)
+    reg_base = os.path.splitext(reg_base)[0]
+    
+    evdir = os.path.dirname(infile)
+    
+    seqid = os.path.basename(os.path.dirname(evdir))
+    
+    if outpath is 'None':
+        outdir = evdir
+    else:
+        outdir = outpath
+        
+    time_bin = int((time_bin.to(u.s)).value)
+    stemout = f'nu{seqid}{mod}{mode}_{reg_base}_{elow}to{ehigh}_{time_bin}s'
+    lc_script = outdir+f'/runlc_{stemout}.sh'    
+    
+    
+    pi_low = energy_to_chan(elow)
+    pi_high = energy_to_chan(ehigh)
+    
+    with open(lc_script, 'w') as f:
+        f.write('nuproducts phafile=NONE bkgphafile=NONE imagefile=NONE ')
+        f.write('runmkarf=no runmkrmf=no ')
+        f.write(f'indir={evdir} outdir={outdir} instrument=FPM{mod} ')
+        f.write(f'steminputs=nu{seqid} stemout={stemout} ')
+        f.write(f'srcregionfile={src_reg} ')
+        
+        if bkgextract is 'no':
+            f.write(f'bkgextract=no ')
+        else:
+            f.write(f'bkgextract=yes bkgregionfile={bgd_reg} ')
+        f.write(f'binsize={time_bin} ')
+        
+        if barycorr:
+            attorb=evdir+f'/nu{seqid}{mod}.attorb'
+            hdr = getheader(infile)
+            ra = hdr['RA_OBJ']
+            dec = hdr['DEC_OBJ']
+            f.write(f'barycorr=yes srcra_barycorr={ra} srcdec_barycorr={dec} ')
+            f.write(f'orbitfile={attorb} ')
+            
+        f.write('clobber=yes')
+        
+    os.chmod(lc_script, stat.S_IRWXG+stat.S_IRWXU)
+    return lc_script
 
 
 def make_exposure_map(obs, mod, vign_energy = False,
@@ -46,7 +155,7 @@ def make_exposure_map(obs, mod, vign_energy = False,
     
     # Only do this for A01, since that's all that matters
     evfile = obs.science_files[mod][0]
-    assert '01' in evfile, f'make_exposure_map: Not a 01 event file: {evfile}'
+    assert '01' in evfile, f'make_exposure_map: Not an 01 event file: {evfile}'
     
     
     

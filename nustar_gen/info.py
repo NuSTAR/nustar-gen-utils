@@ -32,7 +32,6 @@ class NuSTAR():
         self.pixel_um = self.raw_pixel / 5.
         self.pixel = 2.54 * u.arcsec
 
-    @classmethod
     def time_to_met(self, time):
         ''' 
         Convert a datetime object to a unitless NuSTAR MET second.
@@ -40,7 +39,6 @@ class NuSTAR():
         dt = (time - self.mjdref).to(u.s).value
         return dt
     
-    @classmethod
     def met_to_time(self, met):
         '''
         Assumes unitless MET seconds input. Need to catch this.
@@ -141,10 +139,21 @@ class Observation():
         for mod in self._evtfiles:
             science_files[mod] = []
             for file in self._evtfiles[mod]:
-                if ('01' in file) &  \
+                if ( (f'{mod}01' in file) | (f'{mod}06' in file) ) &  \
                     ( (file.endswith('gz') ) | \
                     (file.endswith('evt') ) ):
-                    science_files[mod].extend([file])   
+                    science_files[mod].extend([file])
+            
+            # If you have 06 data, make sure you either have CHU split data
+            # or not:
+            # See if you have any CHU mode 6 data:
+            for file in science_files[mod]:
+                if f'{mod}06_chu' in file:
+                    # You do, so find the "non CHU" mode06 file:
+                    for ind, clfile in enumerate(science_files[mod]):
+                        if f'{mod}06_cl' in clfile:
+                            science_files[mod].pop(ind)
+                            break
         return science_files
 
     @property
@@ -160,13 +169,12 @@ class Observation():
         Set the output path.
         '''
         
-        if os.path.isdir(self.path+value):
-            self._out_path = self.path+value
+        if os.path.isdir(value):
+            self._out_path = value
         else:
             raise ValueError(f"Output path does not exist! {self.path+value})")
         return self._out_path
 
-    @classmethod
     def _find_cleaned_files(self):
         '''
         Uses self._evdir to find all of the cleaned event files.
@@ -174,9 +182,9 @@ class Observation():
         self._evtfiles = {}
         for mod in self.modules:
             self._evtfiles[mod] = sorted(glob.glob(self._evdir+f'nu*{mod}*cl.evt*'))
+            
         return
         
-    @classmethod
     def _parse_header(self):
         from astropy.io.fits import getheader
         from astropy.coordinates import SkyCoord
@@ -184,23 +192,25 @@ class Observation():
         self._exposure = {}
         
         for mod in self.modules:
-            for evtfile in self._evtfiles[mod]:
+            for evtfile in self.science_files[mod]:
                 hdr = getheader(evtfile)
                 if self._source_position is None:               
                     self._source_position = \
                             SkyCoord(hdr['RA_OBJ'], hdr['DEC_OBJ'], unit='deg')
                 
-                for ti in range(5):
+                for ti in range(7):
                     keystr = f'{mod}'+f'{ti+1}'.zfill(2)
 
                     if keystr in evtfile:
-                        self._exposure[keystr] = hdr['EXPOSURE']
-
+                        if keystr not in self._exposure:
+                            self._exposure[keystr] = hdr['EXPOSURE']
+                        else:
+                            self._exposure[keystr] += hdr['EXPOSURE']
+                        print(keystr, evtfile, self._exposure[keystr])
 
         return
         
 
-    @classmethod
     def exposure_report(self):
         '''
         Make pretty output of the exposure
@@ -210,7 +220,7 @@ class Observation():
             raise ValueError(f"Set sequence ID and path first!")
         
         for mod in self.modules:
-            for ti in range(5):
+            for ti in range(7):
                 keystr = f'{mod}'+f'{ti+1}'.zfill(2)
                 if keystr in self._exposure:
                     print(f'Exposure for FPM{mod}, mode '+f'{ti+1}'.zfill(2)+f' is: {1e-3*self._exposure[keystr]:10.4} ks')
@@ -219,7 +229,6 @@ class Observation():
 
         return
 
-    @classmethod
     def download_bgd_report(self):
         '''
         Wrappers to download the background report from the SOC:
