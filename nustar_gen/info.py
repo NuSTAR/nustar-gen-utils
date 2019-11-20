@@ -79,6 +79,7 @@ class Observation():
         self.modules = ['A', 'B']
         self._source_position=None
         self._seqid=False
+        self.observation_date=None
 
         if seqid is not False:
             self.set_seqid = seqid
@@ -195,6 +196,11 @@ class Observation():
         for mod in self.modules:
             for evtfile in self.science_files[mod]:
                 hdr = getheader(evtfile)
+                
+                if self.observation_date is None:
+                    self.observation_date = Time(hdr['DATE-OBS'], format='fits')
+                
+                
                 if self._source_position is None:               
                     self._source_position = \
                             SkyCoord(hdr['RA_OBJ'], hdr['DEC_OBJ'], unit='deg')
