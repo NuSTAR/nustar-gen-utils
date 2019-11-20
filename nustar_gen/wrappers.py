@@ -232,14 +232,14 @@ def make_exposure_map(obs, mod, vign_energy = False,
    # Locate the mast file, attfile, which are what you need for inputs.
     
     auxdir = obs._auxdir    
-    evdir = obs._evdir
+    evdir = obs.evdir
 
     # Find the mast file. glob is necessary to handle .gz or .fits extensions:
-    mastaspectfile = glob.glob(obs._evdir+'/nu'+obs.seqid+'*mast*')[0]
+    mastaspectfile = glob.glob(evdir+'/nu'+obs.seqid+'*mast*')[0]
     # Find the attitude file:
     attfile = glob.glob(obs._auxdir+'/nu'+obs.seqid+'*att*')[0]
     # Find the det1reffile:
-    det1reffile = glob.glob(obs._evdir+'/nu'+obs.seqid+mod+'*det1*')[0]
+    det1reffile = glob.glob(evdir+'/nu'+obs.seqid+mod+'*det1*')[0]
     
     # Only do this for A01, since that's all that matters
     evfile = obs.science_files[mod][0]
@@ -249,7 +249,7 @@ def make_exposure_map(obs, mod, vign_energy = False,
     
     
     # Construct the nuexpomap call:
-    expo_script = obs.out_path+'/nu'+obs.seqid+mod+'_runexpo.sh'
+    expo_script = obs.out_path+'/runexpo_'+obs.seqid+mod+'.sh'
     expo = open(expo_script, 'w')
     
     cmd_string = 'nuexpomap '
@@ -341,39 +341,6 @@ def make_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False):
     
     return outfile
 
-
-
-
-
-def _make_xselect_commands_det1_evts(infile, outfile, regfile):
-    '''
-    Helper script to generate the xselect commands to make an image in a given NuSTAR range
-    '''
-    
-    import glob
-    for oldfile in glob.glob("session1*"):
-        os.system(f"rm {oldfile}")
-    
-    xsel=open("xsel.xco","w")
-    xsel.write("session1\n")
-    xsel.write("read events \n")
-    evdir=os.path.dirname(infile)
-    xsel.write(f'{evdir} \n ' )
-    evfile = os.path.basename(infile)
-    xsel.write(f'{evfile} \n ')
-    xsel.write('yes \n')
-    xsel.write('set xyname\n')
-    xsel.write('DET1X\n')
-    xsel.write('DET1Y\n')
-    xsel.write(f'filter region {regfile} \n')
-    xsel.write("extract events\n")
-    xsel.write("save events\n")
-    xsel.write("%s \n" % outfile)
-    xsel.write('n \n')
-    xsel.write('exit\n')           
-    xsel.write('n \n')
-    xsel.close()
-    return 'xsel.xco'
 
 
 
@@ -497,7 +464,7 @@ def extract_det1_events(infile, regfile, clobber=True, outpath=False):
     Parameters
     ----------
     infile: str
-        Full path tot eh file that you want to process
+        Full path to the event file that you want to process
     regfile: str
         Full path to a ds9 region file (in physical coordinates) to be used to filter
         the events.
@@ -568,7 +535,7 @@ def extract_det1_events(infile, regfile, clobber=True, outpath=False):
 
 def make_det1_lightcurve(infile, mod,
     barycorr=False, time_bin=100*u.s, mode='01',
-    outpath='None', elow=3, ehigh=20):
+    outpath=None, elow=3, ehigh=20):
     '''
     Generate a script to run nuproducts to make a lightcurve using the whole
     FoV and turning off all vignetting and PSF effects. Assumes that infile 
@@ -616,15 +583,14 @@ def make_det1_lightcurve(infile, mod,
     _check_environment()
 
     # Check to see that all files exist:
-    assert os.path.isfile(infile), 'make_lightcurve: infile does not exist!'
+    assert os.path.isfile(infile), 'make_det1_lightcurve: infile does not exist!'
 
 
-    
     evdir = os.path.dirname(infile)
     
     seqid = os.path.basename(os.path.dirname(evdir))
     
-    if outpath is 'None':
+    if outpath is None:
         outdir = evdir
     else:
         outdir = outpath
@@ -636,7 +602,7 @@ def make_det1_lightcurve(infile, mod,
 
     time_bin = int((time_bin.to(u.s)).value)
     stemout = f'nu{seqid}{mod}{mode}_full_FoV_{elow}to{ehigh}_{time_bin}s'
-    lc_script = f'./runlc_{stemout}.sh'    
+    lc_script = f'{outdir}/rundet1lc_{stemout}.sh'    
     
     
     pi_low = energy_to_chan(elow)
@@ -667,9 +633,125 @@ def make_det1_lightcurve(infile, mod,
     return lc_script
 
 
+
+def make_det1_spectra(infile, mod, src_reg,
+    mode='01', outpath='None'):
+    '''
+    Generate a script to run nuproducts to extract a source 
+    spectrum along with the associated RMF.
+    
+    Always runs numkrmf, never runs numkarf. Never extract background.
+    
+    Parameters
+    ----------
+    
+    infile: str
+        Full path to the input event file.
+    
+    mod: str
+        'A' or 'B'
+        
+    src_reg: str
+        Full path to source region.
+    
+    
+    Optional Parameters
+    -------------------
+    
+    
+    outpath: str
+        Optional. Default is to put the lightcurves in the same location as infile
+        
+    mode: str
+        Optional. Used primarily if you're doing mode06 analysis and need to specify
+        output names that are more complicated.
+
+    '''
+
+    from astropy.io.fits import getheader
+
+    # Make sure environment is set up properly
+    _check_environment()
+
+    # Check to see that all files exist:
+    assert os.path.isfile(infile), 'make_det1_spectra: infile does not exist!'
+    assert os.path.isfile(src_reg), 'make_det1_spectra: src_reg does not exist!'
+
+
+    bkgextract='no'
+
+    reg_base = os.path.basename(src_reg)
+    reg_base = os.path.splitext(reg_base)[0]
+    
+    evdir = os.path.dirname(infile)
+    seqid = os.path.basename(os.path.dirname(evdir))
+    
+    if outpath is 'None':
+        outdir = evdir
+    else:
+        outdir = outpath
+        
+    stemout = f'nu{seqid}{mod}{mode}_{reg_base}_det1'
+    lc_script = outdir+f'/rundet1spec_{stemout}.sh'    
+    
+   
+    with open(lc_script, 'w') as f:
+        f.write('nuproducts imagefile=NONE lcfile=NONE bkglcfile=NONE ')
+        f.write('runmkarf=no runmkrmf=yes ')
+        f.write(f'indir={evdir} outdir={outdir} instrument=FPM{mod} ')
+        f.write(f'steminputs=nu{seqid} stemout={stemout} ')
+        f.write(f'srcregionfile={src_reg} runbackscale=no ')
+        
+        if bkgextract is 'no':
+            f.write(f'bkgextract=no ')
+        else:
+            f.write(f'bkgextract=yes bkgregionfile={bgd_reg} ')
+             
+        f.write('clobber=yes')
+        
+    os.chmod(lc_script, stat.S_IRWXG+stat.S_IRWXU)
+    return lc_script
+
+
+
+def _make_xselect_commands_det1_evts(infile, outfile, regfile):
+    '''
+    Helper script to generate the xselect commands to extract events from
+    a given region.
+    '''
+    
+    import glob
+    for oldfile in glob.glob("session1*"):
+        os.system(f"rm {oldfile}")
+    
+    xsel=open("xsel.xco","w")
+    xsel.write("session1\n")
+    xsel.write("read events \n")
+    evdir=os.path.dirname(infile)
+    xsel.write(f'{evdir} \n ' )
+    evfile = os.path.basename(infile)
+    xsel.write(f'{evfile} \n ')
+    xsel.write('yes \n')
+    xsel.write('set xyname\n')
+    xsel.write('DET1X\n')
+    xsel.write('DET1Y\n')
+    xsel.write(f'filter region {regfile} \n')
+    xsel.write("extract events\n")
+    xsel.write("save events\n")
+    xsel.write("%s \n" % outfile)
+    xsel.write('n \n')
+    xsel.write('exit\n')           
+    xsel.write('n \n')
+    xsel.close()
+    return 'xsel.xco'
+
+
+
+
 def _make_xselect_commands_det1(infile, outfile, elow, ehigh):
     '''
-    Helper script to generate the xselect commands to make an image in a given NuSTAR range
+    Helper script to generate the xselect commands to make an image in a
+    given NuSTAR energy range
     '''
     
     import glob

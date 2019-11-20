@@ -105,7 +105,7 @@ class Observation():
         
         # Set subdirectories
         self._hkdir=self._datapath+'/hk/'
-        self._evdir=self._datapath+'/event_cl/'
+        self.evdir=self._datapath+'/event_cl/'
         self._auxdir=self._datapath+'/auxil/'
         
         self._find_cleaned_files()
@@ -138,9 +138,9 @@ class Observation():
             raise ValueError(f"Set sequence ID and path first!")
         
         science_files={}
-        for mod in self._evtfiles:
+        for mod in self.evtfiles:
             science_files[mod] = []
-            for file in self._evtfiles[mod]:
+            for file in self.evtfiles[mod]:
                 if ( (f'{mod}01' in file) | (f'{mod}06' in file) ) &  \
                     ( (file.endswith('gz') ) | \
                     (file.endswith('evt') ) ):
@@ -179,11 +179,11 @@ class Observation():
 
     def _find_cleaned_files(self):
         '''
-        Uses self._evdir to find all of the cleaned event files.
+        Uses self.evdir to find all of the cleaned event files.
         '''
-        self._evtfiles = {}
+        self.evtfiles = {}
         for mod in self.modules:
-            self._evtfiles[mod] = sorted(glob.glob(self._evdir+f'nu*{mod}*cl.evt*'))
+            self.evtfiles[mod] = sorted(glob.glob(self.evdir+f'nu*{mod}*cl.evt*'))
             
         return
         
