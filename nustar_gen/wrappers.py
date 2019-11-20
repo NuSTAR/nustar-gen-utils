@@ -249,7 +249,7 @@ def make_exposure_map(obs, mod, vign_energy = False,
     
     
     # Construct the nuexpomap call:
-    expo_script = obs.out_path+'/nu'+obs.seqid+mod+'_runexpo.sh'
+    expo_script = obs.out_path+'/runexpo_'+obs.seqid+mod+'.sh'
     expo = open(expo_script, 'w')
     
     cmd_string = 'nuexpomap '
@@ -497,7 +497,7 @@ def extract_det1_events(infile, regfile, clobber=True, outpath=False):
     Parameters
     ----------
     infile: str
-        Full path tot eh file that you want to process
+        Full path to the event file that you want to process
     regfile: str
         Full path to a ds9 region file (in physical coordinates) to be used to filter
         the events.
@@ -568,7 +568,7 @@ def extract_det1_events(infile, regfile, clobber=True, outpath=False):
 
 def make_det1_lightcurve(infile, mod,
     barycorr=False, time_bin=100*u.s, mode='01',
-    outpath='None', elow=3, ehigh=20):
+    outpath=None, elow=3, ehigh=20):
     '''
     Generate a script to run nuproducts to make a lightcurve using the whole
     FoV and turning off all vignetting and PSF effects. Assumes that infile 
@@ -616,15 +616,14 @@ def make_det1_lightcurve(infile, mod,
     _check_environment()
 
     # Check to see that all files exist:
-    assert os.path.isfile(infile), 'make_lightcurve: infile does not exist!'
+    assert os.path.isfile(infile), 'make_det1_lightcurve: infile does not exist!'
 
 
-    
     evdir = os.path.dirname(infile)
     
     seqid = os.path.basename(os.path.dirname(evdir))
     
-    if outpath is 'None':
+    if outpath is None:
         outdir = evdir
     else:
         outdir = outpath
@@ -636,7 +635,7 @@ def make_det1_lightcurve(infile, mod,
 
     time_bin = int((time_bin.to(u.s)).value)
     stemout = f'nu{seqid}{mod}{mode}_full_FoV_{elow}to{ehigh}_{time_bin}s'
-    lc_script = f'./runlc_{stemout}.sh'    
+    lc_script = f'{outdir}/runlc_{stemout}.sh'    
     
     
     pi_low = energy_to_chan(elow)
