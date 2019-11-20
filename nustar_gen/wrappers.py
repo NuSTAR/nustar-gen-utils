@@ -663,6 +663,7 @@ def make_det1_lightcurve(infile, mod,
         f.write('clobber=yes')
         
     os.chmod(lc_script, stat.S_IRWXG+stat.S_IRWXU)
+
     return lc_script
 
 
