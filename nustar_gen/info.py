@@ -31,19 +31,20 @@ class NuSTAR():
         self.raw_pixel = 604.8 * u.micron
         self.pixel_um = self.raw_pixel / 5.
         self.pixel = 2.54 * u.arcsec
+        self.launch = Time('2012-06-13T00:00:00')
 
     def time_to_met(self, time):
         ''' 
         Convert a datetime object to a unitless NuSTAR MET second.
         '''
-        dt = (time - self.mjdref).to(u.s).value
+        dt = ( (time - self.mjdref).value * u.d).to(u.s).value
         return dt
     
     def met_to_time(self, met):
         '''
         Assumes unitless MET seconds input. Need to catch this.
         '''
-        this_time = TimeDelta(met*u.s) + self.mjdref
+        this_time = (met*u.s + self.mjdref)
         return this_time
 
 
@@ -78,6 +79,7 @@ class Observation():
         self.modules = ['A', 'B']
         self._source_position=None
         self._seqid=False
+        self.observation_date=None
 
         if seqid is not False:
             self.set_seqid = seqid
@@ -194,6 +196,11 @@ class Observation():
         for mod in self.modules:
             for evtfile in self.science_files[mod]:
                 hdr = getheader(evtfile)
+                
+                if self.observation_date is None:
+                    self.observation_date = Time(hdr['DATE-OBS'], format='fits')
+                
+                
                 if self._source_position is None:               
                     self._source_position = \
                             SkyCoord(hdr['RA_OBJ'], hdr['DEC_OBJ'], unit='deg')
