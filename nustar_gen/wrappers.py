@@ -166,8 +166,8 @@ def make_lightcurve(infile, mod, src_reg,
     else:
         outdir = outpath
         
-    time_bin = int((time_bin.to(u.s)).value)
-    stemout = f'nu{seqid}{mod}{mode}_{reg_base}_{elow}to{ehigh}_{time_bin}s'
+    time_bin = (time_bin.to(u.s)).value
+    stemout = f'nu{seqid}{mod}{mode}_{reg_base}_{elow}to{ehigh}_{time_bin:3.4}s'
     lc_script = outdir+f'/runlc_{stemout}.sh'    
     
     
@@ -342,6 +342,115 @@ def make_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False):
     return outfile
 
 
+def extract_sky_events(infile, regfile, clobber=True, outpath=False):
+    '''
+    Spawn an xselect instance that produces a new event file screened using a sky ds9
+    region file.
+    
+    Parameters
+    ----------
+    infile: str
+        Full path to the event file that you want to process
+    regfile: str
+        Full path to a ds9 region file (in sky coordinates) to be used to filter
+        the events.
+                
+    Other Parameters
+    ----------------
+    
+    clobber: boolean, optional, default=True
+        Overwrite existing files?
+
+    outpath: str, optional, default=os.path.dirname(infile)
+        Set the destination for output. Defaults to same location as infile.
+   
+    Return
+    -------
+    outfile: str
+        The full path to the output image.
+    
+    '''
+
+    # Make sure environment is set up properly
+    _check_environment()
+
+    # Check if input file exists:
+    try:
+        with open(infile) as f:
+            pass
+    except IOError:
+        raise IOError("extract_det1_events: File does not exist %s" % (infile))
+
+    try:
+        with open(regfile) as f:
+            pass
+    except IOError:
+        raise IOError("extract_det1_events: File does not exist %s" % (regfile))
+        
+        
+    if not outpath:
+        outdir=os.path.dirname(infile)
+    else:
+        outdir=outpath
+    
+    # Trim the filename:
+    sname=os.path.basename(infile)
+    if sname.endswith('.gz'):
+        sname = os.path.splitext(sname)[0]
+    sname = os.path.splitext(sname)[0]
+
+    rshort = os.path.basename(regfile)
+    rname = os.path.splitext(rshort)[0]
+    
+    # Generate outfile name
+    outfile = outdir + '/'+sname+f'_{rname}.evt'
+
+    if (os.path.exists(outfile)) & (~clobber):
+        warnings.warn('extract_sky_events: %s exists, use clobber=True to regenerate' % (outfile))
+    else:
+        os.system("rm "+outfile)
+    xsel_file = _make_xselect_commands_sky_evts(infile, outfile, regfile)
+    os.system("xselect @"+xsel_file)
+    os.system("rm -r -f "+xsel_file)
+    
+    
+    return outfile
+
+
+
+
+
+
+
+
+
+def _make_xselect_commands_sky_evts(infile, outfile, regfile):
+    '''
+    Helper script to generate the xselect commands to extract events from
+    a given sky region.
+    '''
+    
+    import glob
+    for oldfile in glob.glob("session1*"):
+        os.system(f"rm {oldfile}")
+    
+    xsel=open("xsel.xco","w")
+    xsel.write("session1\n")
+    xsel.write("read events \n")
+    evdir=os.path.dirname(infile)
+    xsel.write(f'{evdir} \n ' )
+    evfile = os.path.basename(infile)
+    xsel.write(f'{evfile} \n ')
+    xsel.write('yes \n')
+    xsel.write(f'filter region {regfile} \n')
+    xsel.write("extract events\n")
+    xsel.write("save events\n")
+    xsel.write("%s \n" % outfile)
+    xsel.write('n \n')
+    xsel.write('exit\n')           
+    xsel.write('n \n')
+    xsel.close()
+    return 'xsel.xco'
 
 
 
