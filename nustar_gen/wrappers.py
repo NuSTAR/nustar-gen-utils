@@ -93,7 +93,6 @@ def make_spectra(infile, mod, src_reg,
     return lc_script
 
 
-
 def make_lightcurve(infile, mod, src_reg,
     barycorr=False, time_bin=100*u.s, mode='01',
     bgd_reg='None', outpath='None', elow=3, ehigh=20):
@@ -202,9 +201,9 @@ def make_lightcurve(infile, mod, src_reg,
 
 
 def make_exposure_map(obs, mod, vign_energy = False,
-    det_expo=False):
+    det_expo=False, evf=False):
     '''
-    Spawn an instance of nuexpomap to produce an exposure map.
+    Create a script to run nuexpoomap. Returns the script name.
     
     Parameters
     ----------
@@ -231,24 +230,27 @@ def make_exposure_map(obs, mod, vign_energy = False,
 
    # Locate the mast file, attfile, which are what you need for inputs.
     
-    auxdir = obs._auxdir    
     evdir = obs.evdir
 
     # Find the mast file. glob is necessary to handle .gz or .fits extensions:
     mastaspectfile = glob.glob(evdir+'/nu'+obs.seqid+'*mast*')[0]
     # Find the attitude file:
-    attfile = glob.glob(obs._auxdir+'/nu'+obs.seqid+'*att*')[0]
+    attfile = glob.glob(evdir+'/nu'+obs.seqid+'*att.fits')[0]
     # Find the det1reffile:
     det1reffile = glob.glob(evdir+'/nu'+obs.seqid+mod+'*det1*')[0]
     
     # Only do this for A01, since that's all that matters
-    evfile = obs.science_files[mod][0]
-    assert '01' in evfile, f'make_exposure_map: Not an 01 event file: {evfile}'
-    
+    # Override this with evfile keyword:
+    if evf is False:
+        evfile = obs.science_files[mod][0]
+        assert '01' in evfile, f'make_exposure_map: Not an 01 event file: {evfile}'
+    else:
+        evfile=evf
     
     
     
     # Construct the nuexpomap call:
+    print(obs.seqid, mod)
     expo_script = obs.out_path+'/runexpo_'+obs.seqid+mod+'.sh'
     expo = open(expo_script, 'w')
     
@@ -279,7 +281,7 @@ def make_exposure_map(obs, mod, vign_energy = False,
     return expo_script
 
 
-def make_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False):
+def make_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False, usrgti=False):
     '''
     Spawn an xselect instance that produces the image in the energy range.
 
@@ -300,6 +302,10 @@ def make_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False):
 
     outpath: str, optional, default=os.path.dirname(infile)
         Set the destination for output. Defaults to same location as infile.
+   
+    usrgti : str, optional, default = False
+        Use a GTI file to time-fitler the data (see nustar_gen.utils.make_usr_gti)
+        If False, do nothing.
    
     Return
     -------
@@ -322,26 +328,35 @@ def make_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False):
     else:
         outdir=outpath
     
-    # Trime the filename:
+    # Trim the filename:
     sname=os.path.basename(infile)
     if sname.endswith('.gz'):
         sname = os.path.splitext(sname)[0]
     sname = os.path.splitext(sname)[0]
     
+
+    if usrgti is not False:
+        rshort = os.path.basename(usrgti)
+        rname = os.path.splitext(rshort)[0]
+        sname += f'_{rname}'
+
+    
     # Generate outfile name
     outfile = outdir + '/'+sname+f'_{elow}to{ehigh}keV.fits'
-       
+    
     if (os.path.exists(outfile)) & (~clobber):
         warnings.warn('make_image: %s exists, use clobber=True to regenerate' % (outfile))
     else:
         os.system("rm "+outfile)
-    xsel_file = _make_xselect_commands(infile, outfile, elow, ehigh)
+    xsel_file = _make_xselect_commands(infile, outfile, elow, ehigh, usrgti=usrgti)
     os.system("xselect @"+xsel_file)
     os.system("rm -r -f "+xsel_file)
     
     return outfile
 
+<<<<<<< Updated upstream
 
+=======
 def extract_sky_events(infile, regfile, clobber=True, outpath=False):
     '''
     Spawn an xselect instance that produces a new event file screened using a sky ds9
@@ -416,12 +431,157 @@ def extract_sky_events(infile, regfile, clobber=True, outpath=False):
     
     return outfile
 
+def barycenter_events(obs, infile, mod='A'):
+    '''
+    Run barycorr on an event file. 
+
+    Requires:
+
+    infile: given
+    outfile: assumed
+    orbitfile: should be the attorb file
+
+    clockfile: should be CALDB
+
+    ra and dec = get this from the "obs" object
+
+    '''
+
+    # Locate the attorb file:
+    evdir = obs.evdir
+    attorb = f'{obs.evdir}nu{obs.seqid}{mod}.attorb'
+    
+    # Trim the filename:
+    if obs.out_path is False:
+        outdir = os.path.dirname(infile)
+        print(outdir)
+    else:
+        outdir = obs.out_path
+
+    sname=os.path.basename(infile)
+    sname=os.path.splitext(sname)[0]
+    # Generate outfile name
+    outfile = outdir + '/'+sname+f'_barycorr.fits'
+    bary_sh = outdir+'/run_bary_'+sname+'.sh'
+
+    
+    with open(bary_sh, 'w') as f:
+        f.write(f'barycorr infile={infile} clobber=yes ')
+        f.write(f'outfile={outfile} orbitfiles={attorb} ')
+        f.write(f'ra={obs.source_position.ra.deg} dec={obs.source_position.dec.deg} ')
+    
+    
+    os.environ['HEADASNOQUERY'] = ""
+    os.environ['HEADASPROMPT'] = "/dev/null"
+    
+    os.chmod(bary_sh, stat.S_IRWXG+stat.S_IRWXU)
+    os.system(f'{bary_sh}')
+ 
+    return outfile
+
+def apply_gti(infile, gtifile, clobber=True, outpath=False):
+    '''
+    Spawn an xselect instance that produces a new event file screened using GTI file
+    
+    Parameters
+    ----------
+    infile: str
+        Full path to the event file that you want to process
+    regfile: str
+        Full path to a ds9 region file (in sky coordinates) to be used to filter
+        the events.
+                
+    Other Parameters
+    ----------------
+    
+    clobber: boolean, optional, default=True
+        Overwrite existing files?
+
+    outpath: str, optional, default=os.path.dirname(infile)
+        Set the destination for output. Defaults to same location as infile.
+   
+    Return
+    -------
+    outfile: str
+        The full path to the output image.
+    
+    '''
+
+    # Make sure environment is set up properly
+    _check_environment()
+
+    # Check if input file exists:
+    try:
+        with open(infile) as f:
+            pass
+    except IOError:
+        raise IOError("apply_gti: File does not exist %s" % (infile))
+
+    try:
+        with open(gtifile) as f:
+            pass
+    except IOError:
+        raise IOError("apply_gti: File does not exist %s" % (gtifile))
+        
+        
+    if not outpath:
+        outdir=os.path.dirname(infile)
+    else:
+        outdir=outpath
+    
+    # Trim the filename:
+    sname=os.path.basename(infile)
+    if sname.endswith('.gz'):
+        sname = os.path.splitext(sname)[0]
+    sname = os.path.splitext(sname)[0]
+
+    rshort = os.path.basename(gtifile)
+    rname = os.path.splitext(rshort)[0]
+    
+    # Generate outfile name
+    outfile = outdir + '/'+sname+f'_{rname}.evt'
+
+    if (os.path.exists(outfile)) & (~clobber):
+        warnings.warn('apply_gti: %s exists, use clobber=True to regenerate' % (outfile))
+    else:
+        os.system("rm "+outfile)
+    xsel_file = _make_xselect_commands_apply_gti(infile, outfile, gtifile)
+    os.system("xselect @"+xsel_file)
+    os.system("rm -r -f "+xsel_file)
+    
+    
+    return outfile
 
 
-
-
-
-
+def _make_xselect_commands_apply_gti(infile, outfile, gtifile):
+    '''
+    Helper script to generate the xselect commands to extract events from
+    a given sky region.
+    '''
+    
+    import glob
+    for oldfile in glob.glob("session1*"):
+        os.system(f"rm {oldfile}")
+    
+    xsel=open("xsel.xco","w")
+    xsel.write("session1\n")
+    xsel.write("read events \n")
+    evdir=os.path.dirname(infile)
+    xsel.write(f'{evdir} \n ' )
+    evfile = os.path.basename(infile)
+    xsel.write(f'{evfile} \n ')
+    xsel.write('yes \n')
+    xsel.write(f'filter time \n')
+    xsel.write('file \n')
+    xsel.write(f'{gtifile}\n')
+    xsel.write('extract events\n')
+    xsel.write("save events\n")
+    xsel.write("%s \n" % outfile)
+    xsel.write('n \n')
+    xsel.write('exit\n')           
+    xsel.write('n \n')
+    xsel.close()
+    return 'xsel.xco'
 
 
 def _make_xselect_commands_sky_evts(infile, outfile, regfile):
@@ -451,10 +611,10 @@ def _make_xselect_commands_sky_evts(infile, outfile, regfile):
     xsel.write('n \n')
     xsel.close()
     return 'xsel.xco'
+>>>>>>> Stashed changes
 
 
-
-def _make_xselect_commands(infile, outfile, elow, ehigh):
+def _make_xselect_commands(infile, outfile, elow, ehigh, usrgti=False):
     '''
     Helper script to generate the xselect commands to make an image in a given NuSTAR range
     '''
@@ -467,7 +627,13 @@ def _make_xselect_commands(infile, outfile, elow, ehigh):
     xsel.write('yes \n')
     pi_low = energy_to_chan(elow)
     pi_high = energy_to_chan(ehigh)
+    if usrgti is not False:
+        xsel.write(f'filter time \n')
+        xsel.write('file \n')
+        xsel.write(f'{usrgti}\n')
+        xsel.write('extract events\n')
     xsel.write('filter pha_cutoff {} {} \n'.format(pi_low, pi_high))
+
     xsel.write('set xybinsize 1\n')
     xsel.write("extract image\n")
     xsel.write("save image\n")
@@ -741,8 +907,6 @@ def make_det1_lightcurve(infile, mod,
 
     return lc_script
 
-
-
 def make_det1_spectra(infile, mod, src_reg,
     mode='01', outpath='None'):
     '''
@@ -820,8 +984,6 @@ def make_det1_spectra(infile, mod, src_reg,
         
     os.chmod(lc_script, stat.S_IRWXG+stat.S_IRWXU)
     return lc_script
-
-
 
 def _make_xselect_commands_det1_evts(infile, outfile, regfile):
     '''
