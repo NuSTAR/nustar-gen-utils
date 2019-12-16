@@ -354,9 +354,7 @@ def make_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False, usrgti
     
     return outfile
 
-<<<<<<< Updated upstream
 
-=======
 def extract_sky_events(infile, regfile, clobber=True, outpath=False):
     '''
     Spawn an xselect instance that produces a new event file screened using a sky ds9
@@ -611,7 +609,6 @@ def _make_xselect_commands_sky_evts(infile, outfile, regfile):
     xsel.write('n \n')
     xsel.close()
     return 'xsel.xco'
->>>>>>> Stashed changes
 
 
 def _make_xselect_commands(infile, outfile, elow, ehigh, usrgti=False):
