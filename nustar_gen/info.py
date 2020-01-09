@@ -11,9 +11,8 @@ class NuSTAR():
     Parameters
     -----------
     
-    mjdref: Astropy Time
-        Contains the integer part of the MJDREF date (Jan 1, 2010) for
-        the NuSTAR MET epoch.
+    ref_epoch: Astropy Time
+        NuSTAR reference epoch of 2010-01-01 00:00:00 UTC as an Astropy Time object
     
     pixel: float
         Size of a sky pixel (2.54 arcsec)
@@ -24,10 +23,14 @@ class NuSTAR():
     pixel_um: float
         Size of a DET1 pixel (raw_pixel / 5)
         
+    launch: Astropy Time
+        Launch date for NuSTAR
+        
     '''
     
     def __init__(self):
-        self.mjdref = Time(55197., format = 'mjd')
+    
+        self.ref_epoch = Time('2010-01-01T00:00:00', format='fits', scale='utc')
         self.raw_pixel = 604.8 * u.micron
         self.pixel_um = self.raw_pixel / 5.
         self.pixel = 2.54 * u.arcsec
@@ -35,16 +38,61 @@ class NuSTAR():
 
     def time_to_met(self, time):
         ''' 
-        Convert a datetime object to a unitless NuSTAR MET second.
+        Convert a Time object to a unitless NuSTAR MET second. Note that the time scale
+        for MET seconds is *always* 'TT' seconds.
+        
+        Parameters
+        ----------
+        time: Astropy Time object
+            The time or array of times that you want to convert to MET.
+        
+        
+        Returns
+        -------
+        met: float
+            Seconds since Jan 1, 2010 UTC in TT seconds.
+        
+        Examples
+        --------
+        >>> ns = NuSTAR()
+        >>> time = Time('2020-01-01T12:34:42', format = 'fits', scale = 'utc')
+        >>> met = ns.time_to_met(time)
+        >>> print(met)
+        315578085.0
+        
+        
         '''
-        dt = ( (time - self.mjdref).value * u.d).to(u.s).value
-        return dt
+        met = (time.tt - self.ref_epoch).sec
+        return met
     
     def met_to_time(self, met):
         '''
-        Assumes unitless MET seconds input. Need to catch this.
+        Assumes unitless MET seconds input.
+        
+        Parameters
+        ----------
+        met: float
+            Unitless NuSTAR MET seconds.
+        
+        Examples
+        --------
+        >>> ns = NuSTAR()
+        >>> met = 315578085.0
+        >>> time = ns.met_to_time(met)
+        >>> print(time.fits)
+        2020-01-01T12:34:42.000
+        
+        
         '''
-        this_time = (met*u.s + self.mjdref)
+        # Hacky way to check and see if the entries are floats
+        from numpy import asarray
+        foo = asarray(met)
+        if foo.ndim == 0:
+            assert isinstance(met, float), "met_to_time: met must be a float"
+        else:
+            assert isinstance(met[0], float), "met_to_time: met must be a float"
+        
+        this_time = TimeDelta(met, format='sec', scale ='tt') + self.ref_epoch
         return this_time
 
 
