@@ -16,7 +16,7 @@ conf = ConfigParser()
 conf.read(['setup.cfg'])
 metadata = dict(conf.items('metadata'))
 
-PACKAGENAME = metadata.get('package_name', 'astroduet')
+PACKAGENAME = metadata.get('package_name', 'nustar_gen')
 DESCRIPTION = metadata.get('description', ' NuSTAR General Utilities')
 AUTHOR = metadata.get('author', 'NuSTAR Working Group')
 AUTHOR_EMAIL = metadata.get('author_email', '')
@@ -73,7 +73,7 @@ else:
 builtins._ASTROPY_PACKAGE_NAME_ = PACKAGENAME
 
 # VERSION should be PEP440 compatible (http://www.python.org/dev/peps/pep-0440)
-VERSION = metadata.get('version', '0.1.dev')
+VERSION = metadata.get('version', '0.2')
 
 # Indicates if this version is a release version
 RELEASE = 'dev' not in VERSION
