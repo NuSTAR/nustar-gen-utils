@@ -175,7 +175,7 @@ def make_lightcurve(infile, mod, src_reg,
     
     with open(lc_script, 'w') as f:
         f.write('nuproducts phafile=NONE bkgphafile=NONE imagefile=NONE ')
-        f.write('runmkarf=no runmkrmf=no ')
+        f.write(f'runmkarf=no runmkrmf=no pilow={pi_low} pihigh={pi_high} ')
         f.write(f'indir={evdir} outdir={outdir} instrument=FPM{mod} ')
         f.write(f'steminputs=nu{seqid} stemout={stemout} ')
         f.write(f'srcregionfile={src_reg} ')

@@ -67,7 +67,7 @@ def make_usr_gti(input_gtis, outfile='usrgti.fits', **kwargs):
             new_gti = append_fits_entry(new_gti, gti_stub)
         
     
-    fits.writeto(outfile, gti, new_hdr, **kwargs)
+    fits.writeto(outfile, new_gti, new_hdr, **kwargs)
 
     return
 
