@@ -886,6 +886,7 @@ def make_det1_lightcurve(infile, mod,
         f.write('runmkarf=no runmkrmf=no ')
         f.write(f'indir={evdir} outdir={outdir} instrument=FPM{mod} ')
         f.write(f'steminputs=nu{seqid} stemout={stemout} ')
+        f.write(f'pilow={pi_low} pihigh={pi_high} ')
         f.write(f'bkgextract=no ')
         f.write(f'binsize={time_bin} ')
         f.write(f'srcra={ra} srcdec={dec} srcregionfile=DEFAULT srcradius=299 ')
