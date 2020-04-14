@@ -5,7 +5,7 @@ from nustar_gen.utils import energy_to_chan
 from astropy import units as u
 
 def make_spectra(infile, mod, src_reg,
-    mode='01', bgd_reg='None', outpath='None'):
+    mode='01', bgd_reg='None', outpath='None', runmkarf='yes', extended='no'):
     '''
     Generate a script to run nuproducts to extract a source (and optionally
     a background) spectrum along with their response files.
@@ -52,7 +52,7 @@ def make_spectra(infile, mod, src_reg,
     assert os.path.isfile(infile), 'make_spectra: infile does not exist!'
     assert os.path.isfile(src_reg), 'make_spectra: src_reg does not exist!'
 
-    if bgd_reg is not 'None':
+    if bgd_reg != 'None':
         assert os.path.isfile(bgd_reg), 'make_spectra: bgd_reg does not exist!'
         bkgextract='yes'
     else:
@@ -65,10 +65,16 @@ def make_spectra(infile, mod, src_reg,
     
     seqid = os.path.basename(os.path.dirname(evdir))
     
-    if outpath is 'None':
+    if outpath == 'None':
         outdir = evdir
     else:
         outdir = outpath
+        try:
+            os.makedirs(outpath)
+        except FileExistsError:
+        
+    # directory already exists
+            pass    
         
     stemout = f'nu{seqid}{mod}{mode}_{reg_base}'
     lc_script = outdir+f'/runspec_{stemout}.sh'    
@@ -77,12 +83,12 @@ def make_spectra(infile, mod, src_reg,
    
     with open(lc_script, 'w') as f:
         f.write('nuproducts imagefile=NONE lcfile=NONE bkglcfile=NONE ')
-        f.write('runmkarf=yes runmkrmf=yes ')
+        f.write(f'runmkarf={runmkarf} extended={extended} runmkrmf=yes ')
         f.write(f'indir={evdir} outdir={outdir} instrument=FPM{mod} ')
         f.write(f'steminputs=nu{seqid} stemout={stemout} ')
         f.write(f'srcregionfile={src_reg} ')
         
-        if bkgextract is 'no':
+        if bkgextract == 'no':
             f.write(f'bkgextract=no ')
         else:
             f.write(f'bkgextract=yes bkgregionfile={bgd_reg} ')
@@ -147,7 +153,7 @@ def make_lightcurve(infile, mod, src_reg,
     assert os.path.isfile(infile), 'make_lightcurve: infile does not exist!'
     assert os.path.isfile(src_reg), 'make_lightcurve: src_reg does not exist!'
 
-    if bgd_reg is not 'None':
+    if bgd_reg != 'None':
         assert os.path.isfile(bgd_reg), 'make_lightcurve: bgd_reg does not exist!'
         bkgextract='yes'
     else:
@@ -160,11 +166,15 @@ def make_lightcurve(infile, mod, src_reg,
     
     seqid = os.path.basename(os.path.dirname(evdir))
     
-    if outpath is 'None':
+    if outpath == 'None':
         outdir = evdir
     else:
         outdir = outpath
-        
+        try:
+            os.makedirs(outdir)
+        except FileExistsError:
+    # directory already exists
+            pass    
     time_bin = (time_bin.to(u.s)).value
     stemout = f'nu{seqid}{mod}{mode}_{reg_base}_{elow}to{ehigh}_{time_bin:3.4}s'
     lc_script = outdir+f'/runlc_{stemout}.sh'    
@@ -180,7 +190,7 @@ def make_lightcurve(infile, mod, src_reg,
         f.write(f'steminputs=nu{seqid} stemout={stemout} ')
         f.write(f'srcregionfile={src_reg} ')
         
-        if bkgextract is 'no':
+        if bkgextract == 'no':
             f.write(f'bkgextract=no ')
         else:
             f.write(f'bkgextract=yes bkgregionfile={bgd_reg} ')
@@ -327,6 +337,11 @@ def make_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False, usrgti
         outdir=os.path.dirname(infile)
     else:
         outdir=outpath
+        try:
+            os.makedirs(outdir)
+        except FileExistsError:
+    # directory already exists
+            pass
     
     # Trim the filename:
     sname=os.path.basename(infile)
@@ -957,11 +972,16 @@ def make_det1_spectra(infile, mod, src_reg,
     evdir = os.path.dirname(infile)
     seqid = os.path.basename(os.path.dirname(evdir))
     
-    if outpath is 'None':
+    if outpath == 'None':
         outdir = evdir
     else:
         outdir = outpath
-        
+        try:
+           os.makedirs(outdir)
+        except FileExistsError:
+    # directory already exists
+            pass
+    
     stemout = f'nu{seqid}{mod}{mode}_{reg_base}_det1'
     lc_script = outdir+f'/rundet1spec_{stemout}.sh'    
     
@@ -973,7 +993,7 @@ def make_det1_spectra(infile, mod, src_reg,
         f.write(f'steminputs=nu{seqid} stemout={stemout} ')
         f.write(f'srcregionfile={src_reg} runbackscale=no ')
         
-        if bkgextract is 'no':
+        if bkgextract == 'no':
             f.write(f'bkgextract=no ')
         else:
             f.write(f'bkgextract=yes bkgregionfile={bgd_reg} ')
