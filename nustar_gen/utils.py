@@ -22,6 +22,27 @@ def energy_to_chan(keV):
     '''
     return int((keV - 1.6) / 0.04)
 
+def chan_to_energy(chan):
+    '''
+    Convert NuSTAR PI channels to keV
+    keV = PI * 0.04 + 1.6
+    
+    keV = energy_to_chan(210)
+    
+    
+     Example
+    -------
+    >>> from nustar_gen.utils import chan_to_energy
+    >>> chan = chan_to_energy(210)
+    >>> np.isclose(chan, 10.)
+    True
+
+    '''
+    try:
+        en = [float(x) *  0.04 + 1.6 for x in chan]
+    except:
+        en = chan * 0.04 + 1.6
+    return en
 
 def make_usr_gti(input_gtis, outfile='usrgti.fits', **kwargs):
     '''
@@ -163,7 +184,8 @@ def make_straylight_arf(det1im, regfile, filt_file, mod, outpath=None):
     
     filt_file : str
         Full path to the DET1 screened event file (i.e. output of
-        nustar_gen.wrappers.extract_det1_events() ).
+        nustar_gen.wrappers.extract_det1_events() ). This is only used for pulling out
+        the exposure in straylight_area.
 
     mod : str
         'A' or 'B'

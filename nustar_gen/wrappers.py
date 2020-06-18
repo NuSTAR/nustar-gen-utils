@@ -247,7 +247,7 @@ def make_exposure_map(obs, mod, vign_energy = False,
     # Find the attitude file:
     attfile = glob.glob(evdir+'/nu'+obs.seqid+'*att.fits')[0]
     # Find the det1reffile:
-    det1reffile = glob.glob(evdir+'/nu'+obs.seqid+mod+'*det1*')[0]
+    det1reffile = glob.glob(evdir+'/nu'+obs.seqid+mod+'_det1.fits')[0]
     
     # Only do this for A01, since that's all that matters
     # Override this with evfile keyword:
@@ -920,11 +920,14 @@ def make_det1_lightcurve(infile, mod,
 
     return lc_script
 
-def make_det1_spectra(infile, mod, src_reg,
-    mode='01', outpath='None'):
+def make_det1_spectra(infile, mod,
+    outpath='None'):
     '''
     Generate a script to run nuproducts to extract a source 
     spectrum along with the associated RMF.
+    
+    Assumes that infile has already been filtered using extract_det1_events().
+ 
     
     Always runs numkrmf, never runs numkarf. Never extract background.
     
@@ -932,46 +935,41 @@ def make_det1_spectra(infile, mod, src_reg,
     ----------
     
     infile: str
-        Full path to the input event file.
-    
-    mod: str
-        'A' or 'B'
+        Full path to the pre-filtered input event file.
         
-    src_reg: str
-        Full path to source region.
-    
     
     Optional Parameters
     -------------------
     
     
     outpath: str
-        Optional. Default is to put the lightcurves in the same location as infile
+        Optional. Default is to put the spectra in the same location as infile
         
-    mode: str
-        Optional. Used primarily if you're doing mode06 analysis and need to specify
-        output names that are more complicated.
-
     '''
 
     from astropy.io.fits import getheader
-
+    from os.path import basename
+    
     # Make sure environment is set up properly
     _check_environment()
 
     # Check to see that all files exist:
     assert os.path.isfile(infile), 'make_det1_spectra: infile does not exist!'
-    assert os.path.isfile(src_reg), 'make_det1_spectra: src_reg does not exist!'
+#    assert os.path.isfile(src_reg), 'make_det1_spectra: src_reg does not exist!'
 
 
     bkgextract='no'
-
-    reg_base = os.path.basename(src_reg)
-    reg_base = os.path.splitext(reg_base)[0]
-    
+   
     evdir = os.path.dirname(infile)
     seqid = os.path.basename(os.path.dirname(evdir))
     
+    # Construct the output file name:
+    
+    
+    hdr = getheader(infile)
+    ra = hdr['RA_OBJ']
+    dec = hdr['DEC_OBJ']
+
     if outpath == 'None':
         outdir = evdir
     else:
@@ -982,16 +980,20 @@ def make_det1_spectra(infile, mod, src_reg,
     # directory already exists
             pass
     
-    stemout = f'nu{seqid}{mod}{mode}_{reg_base}_det1'
+#    stemout = f'nu{seqid}{mod}{mode}_{reg_base}_det1'
+    
+    stemout = basename(infile).split('.')[0]
     lc_script = outdir+f'/rundet1spec_{stemout}.sh'    
     
    
     with open(lc_script, 'w') as f:
         f.write('nuproducts imagefile=NONE lcfile=NONE bkglcfile=NONE ')
+        f.write(f'infile={infile} ')
         f.write('runmkarf=no runmkrmf=yes ')
         f.write(f'indir={evdir} outdir={outdir} instrument=FPM{mod} ')
         f.write(f'steminputs=nu{seqid} stemout={stemout} ')
-        f.write(f'srcregionfile={src_reg} runbackscale=no ')
+        f.write(f'srcra={ra} srcdec={dec} srcregionfile=DEFAULT srcradius=299 ')
+        f.write(f'runbackscale=no ')
         
         if bkgextract == 'no':
             f.write(f'bkgextract=no ')
