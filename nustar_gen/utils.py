@@ -145,7 +145,14 @@ def straylight_area(det1im, regfile, evf):
 
     reg = read_ds9(regfile)
     hdr = fits.getheader(evf)
-    exp = hdr['EXPOSURE']
+    
+    # exp = hdr['EXPOSURE']
+    
+    # Okay, so the DET1 exposure map is given in *clock* seconds spent in different
+    # configurations, and not livetime. So we need to track the total duration
+    # below via the "DURATION" keyword in the extensions.
+    # Corrected after talking with KKM.
+    exp = 0.
     
     ns = info.NuSTAR()
     det1_pixarea = (ns.pixel_um.to(u.cm))**2
@@ -155,6 +162,7 @@ def straylight_area(det1im, regfile, evf):
     for ii, ihdu in enumerate(hdu):
         if ii == 0:
             continue    
+        exp += ihdu.header['DURATION']
         expim = ihdu.data
         for ri in reg:
             mask = ri.to_mask()
