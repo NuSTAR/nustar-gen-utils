@@ -164,12 +164,39 @@ def straylight_area(det1im, regfile, evf):
             continue    
         exp += ihdu.header['DURATION']
         expim = ihdu.data
+        
+         # Find the include regions first:
+        # Loop over regions and find those that are include first:
+        set=False
+
         for ri in reg:
-            mask = ri.to_mask()
-            if ri.meta['include']:
-                exp_area += mask.cutout(ihdu.data).sum()
+            if (ri.meta['include']) is False:
+                continue
+            if set is False:
+                all_reg=ri
+                set=True
             else:
-                exp_area -= mask.cutout(ihdu.data).sum()
+                # OR inclusive logic to add multiple regions if you want to
+                all_reg = all_reg.union(ri)
+
+        source_mask = all_reg.to_mask()
+        exp_area += source_mask.multiply(ihdu.data).sum()
+
+        # Now loop over the exclude regions:
+        set = False
+        for ri in reg:
+            if (ri.meta['include']) is True:
+                continue
+            if set is False:
+                excl_reg = ri
+                set = True
+            else:
+                excl_reg = excl_reg.union(ri)
+        if set is True:
+            excl_overlap = excl_reg.intersection(all_reg)
+            excl_area = excl_overlap.to_mask().multiply(ihdu.data).sum()
+            exp_area -= excl_area
+        
     hdu.close()
     area = (exp_area * det1_pixarea) / exp
     return area
