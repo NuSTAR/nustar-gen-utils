@@ -305,18 +305,16 @@ def make_straylight_arf(det1im, regfile, filt_file, mod, outpath=None):
     
     return out_arf
     
+def validate_det1_region(regfile):
+    """
+    Code for making sure that region files that you're trying to use on the DET1
+    analysis code are in "image" coordinates
+    """
+    err=-1
+    from regions.io.ds9.read import DS9Parser
+    assert os.path.isfile(regfile), f'{regilfe} does not exist!'
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    with open(regfile) as fh: 
+        region_string = fh.read()
+    parser = DS9Parser(region_string)
+    assert parser.coordsys == 'image', f'Region coordinate system is {parser.coordsys}, not image!'

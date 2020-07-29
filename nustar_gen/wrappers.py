@@ -1,7 +1,7 @@
 import os, stat
 import warnings
 
-from nustar_gen.utils import energy_to_chan
+from nustar_gen.utils import energy_to_chan, validate_det1_region
 from astropy import units as u
 
 def make_spectra(infile, mod, src_reg,
@@ -712,6 +712,8 @@ def make_det1_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False):
     # Make sure environment is set up properly
     _check_environment()
 
+
+
     # Check if input file exists:
     try:
         with open(infile) as f:
@@ -777,6 +779,8 @@ def extract_det1_events(infile, regfile, clobber=True, outpath=False):
 
     # Make sure environment is set up properly
     _check_environment()
+    # Make sure region file is correctly formatted
+    validate_det1_region(regfile)
 
     # Check if input file exists:
     try:
@@ -964,7 +968,7 @@ def make_det1_spectra(infile, mod, stemout=False, gtifile=False,
     _check_environment()
 
     # Check to see that all files exist:
-    assert os.path.isfile(infile), 'make_det1_spectra: infile does not exist!'
+    assert os.path.isfile(infile), f'make_det1_spectra: {infile} does not exist!'
 #    assert os.path.isfile(src_reg), 'make_det1_spectra: src_reg does not exist!'
 
 
