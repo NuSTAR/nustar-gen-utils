@@ -920,7 +920,7 @@ def make_det1_lightcurve(infile, mod,
 
     return lc_script
 
-def make_det1_spectra(infile, mod,
+def make_det1_spectra(infile, mod, stemout=False, gtifile=False,
     outpath='None'):
     '''
     Generate a script to run nuproducts to extract a source 
@@ -944,7 +944,17 @@ def make_det1_spectra(infile, mod,
     
     outpath: str
         Optional. Default is to put the spectra in the same location as infile
+    
+    stemout: str
+        Optional. Use the specified stemout string when calling nuproducts. Otherwise
+        uses the default value.
+    
+    gtifile: str
+        Path to a GTI file. If this is set, then this is passed to nuproducts.
+        **NOTE** As of now proper treatment of this being barycenter corrected (or not)
+        is not supported. If you're doing pulsar analysis, please write your own version.
         
+    
     '''
 
     from astropy.io.fits import getheader
@@ -981,8 +991,11 @@ def make_det1_spectra(infile, mod,
             pass
     
 #    stemout = f'nu{seqid}{mod}{mode}_{reg_base}_det1'
-    
-    stemout = basename(infile).split('.')[0]
+
+    # Use the default stemout unless this is set
+    if stemout is False:
+        stemout = basename(infile).split('.')[0]
+        
     lc_script = outdir+f'/rundet1spec_{stemout}.sh'    
     
    
@@ -993,6 +1006,8 @@ def make_det1_spectra(infile, mod,
         f.write(f'indir={evdir} outdir={outdir} instrument=FPM{mod} ')
         f.write(f'steminputs=nu{seqid} stemout={stemout} ')
         f.write(f'srcra={ra} srcdec={dec} srcregionfile=DEFAULT srcradius=299 ')
+        if (gtifile != False):
+            f.write(f'usrgtifile={gtifile} ')
         f.write(f'runbackscale=no ')
         
         if bkgextract == 'no':
