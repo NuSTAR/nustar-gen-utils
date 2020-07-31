@@ -1,34 +1,37 @@
+NuSTAR General Utilities
+========================
+
+
++------------------+---------------+------------+
+| Current Version  | |Readthedocs| | |Astropy|  |
++------------------+---------------+------------+
+
+
 Repository for (hopefully) useful NuSTAR python tools
 --------------------------------------
 
-
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Nuclear Spectroscopic Telescope ARray
---------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. image:: https://www.nustar.caltech.edu/system/avm_image_sqls/binaries/26/page/nustar_artistconcept_2.jpg?1393022433
     :target: http://www.nustar.caltech.edu
     :alt: NuSTAR
 
 
-Dependecies
+
+Installation
 ------------
-
-.. image:: http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat
-    :target: http://www.astropy.org
-    :alt: Powered by Astropy Badge
-
-
 
 We require at least python 3.6 for this installation as well as the other dependencies
 listed in requirements.txt.
 
 To install these via conda, do:
 
-conda install --yes --file requirements.txt
+.. code-block:: bash
 
+    conda install --yes --file requirements.txt
 
-Installation
-------------
 In the current version, a development installation is recommended.
 From the shell:
 
@@ -36,13 +39,17 @@ From the shell:
 
     pip install -e .
 
-Sphinx
-------------
+Documentation
+-------------
 To build the documentation, from the shell:
 
 .. code-block:: bash
 
     sphinx-build docs docs/_build
+
+And then open the docs/_build/index.html in your browser.
+
+Or, see the readthedocs documentation: |Readthedocs|
 
 
 Contributing
@@ -54,7 +61,12 @@ built on open source, and we'd love to have you hang out in our community.
 If you'd like to say hello, drop onto the NuSTAR Slack channel from the
 `NuSTAR Observer's page <https://www.nustar.caltech.edu/page/observers>`_ .
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 **Imposter syndrome disclaimer**: We want your help. No, really.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 There may be a little voice inside your head that is telling you that you're not
 ready to be an open source contributor; that your skills aren't nearly good
@@ -79,3 +91,12 @@ Note: This disclaimer was originally written by
 `PyCon talk <https://www.youtube.com/watch?v=6Uj746j9Heo>`_ , and was adapted by
 nustar-gen-util based on its use in the README file for the
 `MetPy project <https://github.com/Unidata/MetPy>`_.
+
+
+
+.. |Readthedocs| image:: https://img.shields.io/badge/docs-latest-brightgreen.svg?style=flat
+    :target: https://nustar-gen-utils.readthedocs.io/en/latest/
+    
+.. |Astropy| image:: http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat
+    :target: http://www.astropy.org
+    :alt: Powered by Astropy Badge
