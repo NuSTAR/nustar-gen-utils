@@ -3,9 +3,10 @@ Documentation
 -------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    readme
    info
+   utils
    wrappers
    

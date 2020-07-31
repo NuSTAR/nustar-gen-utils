@@ -58,5 +58,5 @@ if not on_rtd:
 #         "_static/js/analytics.js",
 #     ],
 # )
-html_static_path = ["_static"]
+html_static_path = []
 html_show_sourcelink = False

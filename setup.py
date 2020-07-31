@@ -16,6 +16,10 @@ conf = ConfigParser()
 conf.read(['setup.cfg'])
 metadata = dict(conf.items('metadata'))
 
+# Set this for sphinx
+html_static_path = []
+
+
 PACKAGENAME = metadata.get('package_name', 'nustar_gen')
 DESCRIPTION = metadata.get('description', ' NuSTAR General Utilities')
 AUTHOR = metadata.get('author', 'NuSTAR Working Group')

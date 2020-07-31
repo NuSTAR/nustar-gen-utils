@@ -6,31 +6,41 @@ import numpy as np
 
 def energy_to_chan(keV):
     '''
-    Convert keV to NuSTAR PI channels
-    PI = (keV - 1.6) / 0.04
+    Convert keV to NuSTAR PI channels: PI = (keV - 1.6) / 0.04
     
-    chan = energy_to_chan(3.0)
+    Parameters
+    ----------
     
+    keV: float
+        Unitless float giving the energy you want to convert to channels.
     
-     Example
-    -------
+    Example
+    ---------
     >>> from nustar_gen.utils import energy_to_chan
     >>> chan = energy_to_chan(10.)
     >>> np.isclose(chan, 210)
     True
 
     '''
+    
+    
+    
+
+
     return int((keV - 1.6) / 0.04)
 
 def chan_to_energy(chan):
     '''
-    Convert NuSTAR PI channels to keV
-    keV = PI * 0.04 + 1.6
-    
-    keV = energy_to_chan(210)
+    Convert NuSTAR PI channels to keV: keV = PI * 0.04 + 1.6
     
     
-     Example
+    Parameters
+    ----------
+    
+    channel: int
+        Integer PI channel to be converted into keV    
+    
+    Example
     -------
     >>> from nustar_gen.utils import chan_to_energy
     >>> chan = chan_to_energy(210)
@@ -52,8 +62,15 @@ def make_usr_gti(input_gtis, outfile='usrgti.fits', **kwargs):
     Parameters
     ----------
     gtis :  dict
-        Is assumed to have a 'tstart' and 'tend' key.
-        Can be an array of entries.
+        Dictionary assumed to have a 'START' and 'STOP' keys.
+        Can be an array of dicts.
+    
+    Other parameters
+    ----------
+    outfile: str
+        Full path to desired outfile location. Default is 'usrgti.fits' in current
+        working directory
+
 
     '''
     import astropy.io.fits as fits
@@ -111,7 +128,8 @@ def append_fits_entry(base_rec, new_entry):
 def straylight_area(det1im, regfile, evf):
     '''
     Utility script to compute the area for a given region file. Uses the astropy.regions
-    module to compute the mask.
+    module to compute the mask. Allows for overlapping include/reject regions and multiple
+    source regions
     
     Parameters
     ----------
@@ -119,12 +137,16 @@ def straylight_area(det1im, regfile, evf):
         Full path to the DET1 exposure image file.
         
     regfil : str
-        Full path to the region file, assumed to be a ds9 region file in "IMAGE"
-            coordinates
-    
+        Full path to the region file, assumed to be a ds9 region file
+        in "IMAGE" coordinates
     evf : str
-        Full path to the event file. Only used for pulling down the base exposure in
-            the FITS header.
+        Full path to the event file. Only used for pulling down
+        the base exposure in the FITS header.
+
+    Returns
+    --------
+    area: astropy-units float
+        Illuminated detector area with units of cm2.
 
     '''
     
@@ -207,6 +229,7 @@ def make_straylight_arf(det1im, regfile, filt_file, mod, outpath=None):
     '''
     Produces an ARF for a given observation. Currently uses counts-weighting to
         determine the contribution of the detabs parameters for each detector.
+        SHOULD PROBABLY BE MOVED TO WRAPPERS OR SOMETHING?
         
     Parameters
     ----------
@@ -233,8 +256,8 @@ def make_straylight_arf(det1im, regfile, filt_file, mod, outpath=None):
 
     Returns
     -------
-    
-    Full path to the new arf file
+    out_arf: string
+        Full path to the new arf file
     
     '''   
     

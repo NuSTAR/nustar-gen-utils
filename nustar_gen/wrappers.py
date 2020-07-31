@@ -25,7 +25,7 @@ def make_spectra(infile, mod, src_reg,
         Full path to source region.
     
     
-    Optional Parameters
+    Other Parameters
     -------------------
     
 
@@ -118,9 +118,8 @@ def make_lightcurve(infile, mod, src_reg,
         Full path to source region.
     
     
-    Optional Parameters
+    Other Parameters
     -------------------
-    
 
     bgd_reg: str
         If not 'None', then must be the full path to the background region file
@@ -448,16 +447,25 @@ def barycenter_events(obs, infile, mod='A'):
     '''
     Run barycorr on an event file. 
 
-    Requires:
+    Parameters
+    --------------------
+    obs: nustar_gen.info.Observation
+        An instance of the Observation class
+    
+    infile: str
+        Full path to input file
 
-    infile: given
-    outfile: assumed
-    orbitfile: should be the attorb file
+    mod: str
+        Module to use. 'A' or 'B'
 
-    clockfile: should be CALDB
+    Other Parameters
+    -------------------
 
-    ra and dec = get this from the "obs" object
+    TO BE IMPLEMENTED
 
+    clockfile: str
+        Path to the clockfile you want to use. Default is to use the CALDB clockfile
+        
     '''
 
     # Locate the attorb file:
@@ -843,7 +851,7 @@ def make_det1_lightcurve(infile, mod,
         
     
     
-    Optional Parameters
+    Other Parameters
     -------------------
     
     bgd_reg: str
@@ -854,7 +862,7 @@ def make_det1_lightcurve(infile, mod,
         coordinates and uses these for the barycenter correction.
         
     elow: float
-        Low-eneryg bound. Default is 3 keV.
+        Low-energy bound. Default is 3 keV.
     
     ehigh: float
         High-energy bound. Default is 20 keV.
@@ -942,7 +950,7 @@ def make_det1_spectra(infile, mod, stemout=False, gtifile=False,
         Full path to the pre-filtered input event file.
         
     
-    Optional Parameters
+    Other Parameters
     -------------------
     
     
