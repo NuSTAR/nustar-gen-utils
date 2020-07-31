@@ -2,9 +2,8 @@ NuSTAR General Utilities
 ========================
 
 
-+------------------+---------------+------------+
-| Current Version  | |Readthedocs| | |Astropy|  |
-+------------------+---------------+------------+
+|Readthedocs| |Astropy|
+
 
 
 Repository for (hopefully) useful NuSTAR python tools
