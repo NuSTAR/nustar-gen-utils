@@ -1,7 +1,7 @@
 import os, stat
 import warnings
 
-from nustar_gen.utils import energy_to_chan
+from nustar_gen.utils import energy_to_chan, validate_det1_region
 from astropy import units as u
 
 def make_spectra(infile, mod, src_reg,
@@ -25,7 +25,7 @@ def make_spectra(infile, mod, src_reg,
         Full path to source region.
     
     
-    Optional Parameters
+    Other Parameters
     -------------------
     
 
@@ -118,9 +118,8 @@ def make_lightcurve(infile, mod, src_reg,
         Full path to source region.
     
     
-    Optional Parameters
+    Other Parameters
     -------------------
-    
 
     bgd_reg: str
         If not 'None', then must be the full path to the background region file
@@ -448,16 +447,25 @@ def barycenter_events(obs, infile, mod='A'):
     '''
     Run barycorr on an event file. 
 
-    Requires:
+    Parameters
+    --------------------
+    obs: nustar_gen.info.Observation
+        An instance of the Observation class
+    
+    infile: str
+        Full path to input file
 
-    infile: given
-    outfile: assumed
-    orbitfile: should be the attorb file
+    mod: str
+        Module to use. 'A' or 'B'
 
-    clockfile: should be CALDB
+    Other Parameters
+    -------------------
 
-    ra and dec = get this from the "obs" object
+    TO BE IMPLEMENTED
 
+    clockfile: str
+        Path to the clockfile you want to use. Default is to use the CALDB clockfile
+        
     '''
 
     # Locate the attorb file:
@@ -712,6 +720,8 @@ def make_det1_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False):
     # Make sure environment is set up properly
     _check_environment()
 
+
+
     # Check if input file exists:
     try:
         with open(infile) as f:
@@ -777,6 +787,8 @@ def extract_det1_events(infile, regfile, clobber=True, outpath=False):
 
     # Make sure environment is set up properly
     _check_environment()
+    # Make sure region file is correctly formatted
+    validate_det1_region(regfile)
 
     # Check if input file exists:
     try:
@@ -839,7 +851,7 @@ def make_det1_lightcurve(infile, mod,
         
     
     
-    Optional Parameters
+    Other Parameters
     -------------------
     
     bgd_reg: str
@@ -850,7 +862,7 @@ def make_det1_lightcurve(infile, mod,
         coordinates and uses these for the barycenter correction.
         
     elow: float
-        Low-eneryg bound. Default is 3 keV.
+        Low-energy bound. Default is 3 keV.
     
     ehigh: float
         High-energy bound. Default is 20 keV.
@@ -938,7 +950,7 @@ def make_det1_spectra(infile, mod, stemout=False, gtifile=False,
         Full path to the pre-filtered input event file.
         
     
-    Optional Parameters
+    Other Parameters
     -------------------
     
     
@@ -964,7 +976,7 @@ def make_det1_spectra(infile, mod, stemout=False, gtifile=False,
     _check_environment()
 
     # Check to see that all files exist:
-    assert os.path.isfile(infile), 'make_det1_spectra: infile does not exist!'
+    assert os.path.isfile(infile), f'make_det1_spectra: {infile} does not exist!'
 #    assert os.path.isfile(src_reg), 'make_det1_spectra: src_reg does not exist!'
 
 

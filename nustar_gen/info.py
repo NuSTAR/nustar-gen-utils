@@ -222,7 +222,7 @@ class Observation():
         if os.path.isdir(value):
             self._out_path = value
         else:
-            raise ValueError(f"Output path does not exist! {self.path+value})")
+            raise ValueError(f"Output path does not exist! {value})")
         return self._out_path
 
     def _find_cleaned_files(self):
