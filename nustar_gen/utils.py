@@ -150,7 +150,7 @@ def straylight_area(det1im, regfile, evf):
 
     '''
     
-    from regions import read_ds9
+    from regions import read_ds9, PixCoord
     from astropy.io import fits
     from nustar_gen import info
     from astropy import units as u
@@ -202,9 +202,9 @@ def straylight_area(det1im, regfile, evf):
                 all_reg = all_reg.union(ri)
 
         source_mask = all_reg.to_mask()
-        exp_area += source_mask.multiply(ihdu.data).sum()
+#        exp_area += source_mask.multiply(ihdu.data).sum()
 
-        # Now loop over the exclude regions:
+        # Now loop over the excluded regions:
         set = False
         for ri in reg:
             if (ri.meta['include']) is True:
@@ -215,9 +215,18 @@ def straylight_area(det1im, regfile, evf):
             else:
                 excl_reg = excl_reg.union(ri)
         if set is True:
-            excl_overlap = excl_reg.intersection(all_reg)
-            excl_area = excl_overlap.to_mask().multiply(ihdu.data).sum()
-            exp_area -= excl_area
+            merge_region = all_reg.intersection(excl_reg)
+        else:
+            merge_region = all_reg
+        
+        # Brute force a mask, because below was being weird
+        coords = np.array(np.meshgrid(range(360), range(360)))
+        pix = PixCoord(coords[0, :], coords[1, :])
+        mask = merge_region.contains(pix)        
+        exp_area += ihdu.data[mask].sum()
+        
+#            excl_area = excl_overlap.to_mask().multiply(ihdu.data).sum()
+#            exp_area -= excl_area
         
     hdu.close()
     area = (exp_area * det1_pixarea) / exp
