@@ -22,11 +22,6 @@ def energy_to_chan(keV):
     True
 
     '''
-    
-    
-    
-
-
     return int((keV - 1.6) / 0.04)
 
 def chan_to_energy(chan):
@@ -234,7 +229,7 @@ def straylight_area(det1im, regfile, evf):
     
 
 
-def make_straylight_arf(det1im, regfile, filt_file, mod, outpath=None):
+def make_straylight_arf(det1im, regfile, filt_file, mod, obs):
     '''
     Produces an ARF for a given observation. Currently uses counts-weighting to
         determine the contribution of the detabs parameters for each detector.
@@ -256,12 +251,10 @@ def make_straylight_arf(det1im, regfile, filt_file, mod, outpath=None):
 
     mod : str
         'A' or 'B'
+        
+    obs: nustar_gen.info.Observation
+        Observation meta data
 
-    Other parameters:
-    -----------------
-    
-    outpath : str
-        Output directory. If not specified, places this in the same location as evf
 
     Returns
     -------
@@ -284,10 +277,7 @@ def make_straylight_arf(det1im, regfile, filt_file, mod, outpath=None):
     assert os.path.isfile(filt_file), \
         f'straylight_area: Event file not found: {evf}'
 
-    if outpath is None:
-        outdir = os.path.dirname(evf)
-    else:
-        outdir=outpath
+    outdir = obs.out_path
     
     out_arf = outdir+'/'+os.path.splitext(os.path.basename(filt_file))[0]+'.arf'
 

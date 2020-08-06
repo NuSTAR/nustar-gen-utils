@@ -944,20 +944,19 @@ def make_det1_spectra(infile, mod, obs,
     
     Assumes that infile has already been filtered using extract_det1_events().
  
-    
     Always runs numkrmf, never runs numkarf. Never extract background.
     
     Parameters
     ----------
     
     infile: str
-        Full path to the pre-filtered input event file.
-    
+        Full path to the input event file. This should be pre-filtered by
+        by extract_det1_events
     
     mod: str
         'A' or 'B'
         
-    obs: nustar_gen.info.Observation()
+    obs: nustar_gen.info.Observation
         Observation meta data
    
     Other Parameters
