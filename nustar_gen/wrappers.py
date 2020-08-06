@@ -832,9 +832,9 @@ def extract_det1_events(infile, regfile, clobber=True, outpath=False):
     
     return outfile
 
-def make_det1_lightcurve(infile, mod,
+def make_det1_lightcurve(infile, mod, obs,
     barycorr=False, time_bin=100*u.s, mode='01',
-    outpath=None, elow=3, ehigh=20):
+    elow=3, ehigh=20, stemout=False):
     '''
     Generate a script to run nuproducts to make a lightcurve using the whole
     FoV and turning off all vignetting and PSF effects. Assumes that infile 
@@ -844,35 +844,36 @@ def make_det1_lightcurve(infile, mod,
     ----------
     
     infile: str
-        Full path to the input event file.
+        Full path to the input event file. This should be pre-filtered by
+        by extract_det1_events
     
     mod: str
         'A' or 'B'
         
+    obs: nustar_gen.info.Observation
+        Observation meta data
     
     
     Other Parameters
     -------------------
     
-    bgd_reg: str
-        If not 'None', then must be the full path to the background region file
-
     barycorr: bool 
         Default is 'False'. If 'True', then queries the infile for the OBJ J2000
         coordinates and uses these for the barycenter correction.
         
-    elow: float
-        Low-energy bound. Default is 3 keV.
+    elow: float, optional, default = 3 keV
+        Low-energy bound
     
-    ehigh: float
-        High-energy bound. Default is 20 keV.
+    ehigh: float, optional, default is 20 keV
+        High-energy bound
+            
+    mode: str, optional, default is '01'
+        Optional. Used to specify stemout if you're doing mode06 analysis and want
+        to specify output names that are more complicated.
     
-    outpath: str
-        Optional. Default is to put the lightcurves in the same location as infile
-        
-    mode: str
-        Optional. Used primarily if you're doing mode06 analysis and need to specify
-        output names that are more complicated.
+    stemout: str, optional
+        Use the specified stemout string when calling nuproducts. Otherwise
+        uses the default value.
 
     '''
 
@@ -885,14 +886,16 @@ def make_det1_lightcurve(infile, mod,
     assert os.path.isfile(infile), 'make_det1_lightcurve: infile does not exist!'
 
 
-    evdir = os.path.dirname(infile)
+#    evdir = os.path.dirname(infile)
+    evdir = obs.evdir
+    seqid = obs.seqid
+#    seqid = os.path.basename(os.path.dirname(evdir))
+    outdir = obs.out_path
     
-    seqid = os.path.basename(os.path.dirname(evdir))
-    
-    if outpath is None:
-        outdir = evdir
-    else:
-        outdir = outpath
+#     if outpath is None:
+#         outdir = evdir
+#     else:
+#         outdir = outpath
     
     
     hdr = getheader(infile)
@@ -900,9 +903,10 @@ def make_det1_lightcurve(infile, mod,
     dec = hdr['DEC_OBJ']
 
     time_bin = int((time_bin.to(u.s)).value)
-    stemout = f'nu{seqid}{mod}{mode}_full_FoV_{elow}to{ehigh}_{time_bin}s'
-    lc_script = f'{outdir}/rundet1lc_{stemout}.sh'    
+    if stemout is False:
+        stemout = f'nu{seqid}{mod}{mode}_full_FoV_{elow}to{ehigh}_{time_bin}s'
     
+    lc_script = f'{outdir}/rundet1lc_{stemout}.sh'    
     
     pi_low = energy_to_chan(elow)
     pi_high = energy_to_chan(ehigh)
@@ -932,8 +936,8 @@ def make_det1_lightcurve(infile, mod,
 
     return lc_script
 
-def make_det1_spectra(infile, mod, stemout=False, gtifile=False,
-    outpath='None'):
+def make_det1_spectra(infile, mod, obs,
+    stemout=False, gtifile=False):
     '''
     Generate a script to run nuproducts to extract a source 
     spectrum along with the associated RMF.
@@ -948,14 +952,17 @@ def make_det1_spectra(infile, mod, stemout=False, gtifile=False,
     
     infile: str
         Full path to the pre-filtered input event file.
-        
     
+    
+    mod: str
+        'A' or 'B'
+        
+    obs: nustar_gen.info.Observation()
+        Observation meta data
+   
     Other Parameters
     -------------------
-    
-    
-    outpath: str
-        Optional. Default is to put the spectra in the same location as infile
+            
     
     stemout: str
         Optional. Use the specified stemout string when calling nuproducts. Otherwise
@@ -969,7 +976,7 @@ def make_det1_spectra(infile, mod, stemout=False, gtifile=False,
     
     '''
 
-    from astropy.io.fits import getheader
+#    from astropy.io.fits import getheader
     from os.path import basename
     
     # Make sure environment is set up properly
@@ -982,26 +989,25 @@ def make_det1_spectra(infile, mod, stemout=False, gtifile=False,
 
     bkgextract='no'
    
-    evdir = os.path.dirname(infile)
-    seqid = os.path.basename(os.path.dirname(evdir))
-    
+    evdir = obs.evdir
+    seqid = obs.seqid
+    outdir = obs.out_path
     # Construct the output file name:
     
     
-    hdr = getheader(infile)
-    ra = hdr['RA_OBJ']
-    dec = hdr['DEC_OBJ']
-
-    if outpath == 'None':
-        outdir = evdir
-    else:
-        outdir = outpath
-        try:
-           os.makedirs(outdir)
-        except FileExistsError:
-    # directory already exists
-            pass
+#    hdr = getheader(infile)
+    ra =obs.source_position.ra.deg
+    dec = obs.source_position.dec.deg
     
+#     if outpath == 'None':
+#         outdir = evdir
+#     else:
+#         outdir = outpath
+#         try:
+#            os.makedirs(outdir)
+#         except FileExistsError:
+#     # directory already exists
+#             pass
 #    stemout = f'nu{seqid}{mod}{mode}_{reg_base}_det1'
 
     # Use the default stemout unless this is set
@@ -1021,12 +1027,7 @@ def make_det1_spectra(infile, mod, stemout=False, gtifile=False,
         if (gtifile != False):
             f.write(f'usrgtifile={gtifile} ')
         f.write(f'runbackscale=no ')
-        
-        if bkgextract == 'no':
-            f.write(f'bkgextract=no ')
-        else:
-            f.write(f'bkgextract=yes bkgregionfile={bgd_reg} ')
-             
+        f.write(f'bkgextract=no ')            
         f.write('clobber=yes')
         
     os.chmod(lc_script, stat.S_IRWXG+stat.S_IRWXU)
