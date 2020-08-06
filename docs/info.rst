@@ -1,7 +1,7 @@
 .. module:: nustar_gen
 
 Informational and Metadata classes
-==========================
+==================================
 
 
 
