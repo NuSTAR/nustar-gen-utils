@@ -6,35 +6,48 @@ import glob
 
 class NuSTAR():
     '''
-    Class for holding constant attributes
-    
-    Parameters
-    -----------
-    
-    ref_epoch: Astropy Time
-        NuSTAR reference epoch of 2010-01-01 00:00:00 UTC as an Astropy Time object
-    
-    pixel: float
-        Size of a sky pixel (2.54 arcsec)
-    
-    raw_pixel: float
-        Contains the ideal pixel pitch in NuSTAR (604.8 microns)
-    
-    pixel_um: float
-        Size of a DET1 pixel (raw_pixel / 5)
-        
-    launch: Astropy Time
-        Launch date for NuSTAR
+    Class for holding constant attributes about NuSTAR and for time conversion from
+    MET to 'TIME' objects and back again
         
     '''
     
     def __init__(self):
     
-        self.ref_epoch = Time('2010-01-01T00:00:00', format='fits', scale='utc')
-        self.raw_pixel = 604.8 * u.micron
-        self.pixel_um = self.raw_pixel / 5.
-        self.pixel = 2.54 * u.arcsec
-        self.launch = Time('2012-06-13T00:00:00')
+        self._ref_epoch = Time('2010-01-01T00:00:00', format='fits', scale='utc')
+        self._raw_pixel = 604.8 * u.micron
+        self._pixel_um = self._raw_pixel / 5.
+        self._pixel = 2.54 * u.arcsec
+        self._launch = Time('2012-06-13T00:00:00')
+
+    @property
+    def launch(self):
+        '''
+        Returns the launch date
+        '''
+        return self._launch
+        
+    @property
+    def ref_epoch(self):
+        '''
+        Returns MET time reference epoch (Jan 1, 2010, UTC)
+        '''
+        return self._ref_epoch
+
+    @property
+    def pixel(self):
+        '''
+        Returns the size of a sky pixel (2.54 arcsec)
+        '''
+        return self._pixel
+
+
+    @property
+    def pixel_um(self):
+        '''
+        Returns the physical size of a NuSTAR sub-pixel (raw_pixel / 5)
+        '''
+        return self._pixel_um
+
 
     def time_to_met(self, time):
         ''' 
@@ -106,20 +119,12 @@ class Observation():
     ----------
     path: str, optional, default './'
         The top-level working directory. All paths are assumed to be relative to this
-        location.
+        location
     
     seqid: str
         The sequence id that you're going to be working with. Data are assumed to be
-        obs.path+os.seqid+`/event_cl/`. Set via set_seqid.
-
-    exposure: dict
-        'A' and 'B' keys give a list of the exposure times for each event file.
-                
-    source_position: Astropy SkyCoord
-        J2000 coordinates of the source based on
-        the FITS header.
-
-    
+        obs.path+obs.seqid+`/event_cl/`. Set via set_seqid or when you create an
+        instance of Observation()
     '''
         
     def __init__(self, path='./', seqid=False):
@@ -141,24 +146,6 @@ class Observation():
         '''
         return self._seqid
         
-    @seqid.setter
-    def set_seqid(self, value):
-        '''Set the sequence ID. Raise error if path+sequence doesn't exist. Finds
-        clean event files and parses the input fits header to populate the other'''
-        if os.path.isdir(self.path+value):
-            self._seqid = value
-        else:
-            raise ValueError(f"Path does not exist! {self.path+value})")
-        self._datapath=self.path+self._seqid
-        
-        # Set subdirectories
-        self._hkdir=self._datapath+'/hk/'
-        self.evdir=self._datapath+'/event_cl/'
-        self._auxdir=self._datapath+'/auxil/'
-        
-        self._find_cleaned_files()
-        
-        self._parse_header()
 
     @property
     def exposure(self):
@@ -213,7 +200,24 @@ class Observation():
         '''
         return self._out_path
 
-    @out_path.setter
+    def set_seqid(self, value):
+        '''Set the sequence ID. Raise error if path+sequence doesn't exist. Finds
+        clean event files and parses the input fits header to populate the other'''
+        if os.path.isdir(self.path+value):
+            self._seqid = value
+        else:
+            raise ValueError(f"Path does not exist! {self.path+value})")
+        self._datapath=self.path+self._seqid
+        
+        # Set subdirectories
+        self._hkdir=self._datapath+'/hk/'
+        self.evdir=self._datapath+'/event_cl/'
+        self._auxdir=self._datapath+'/auxil/'
+        
+        self._find_cleaned_files()
+        
+        self._parse_header()
+
     def set_outpath(self, value):
         '''
         Set the output path.
@@ -267,7 +271,7 @@ class Observation():
 
     def exposure_report(self):
         '''
-        Make pretty output of the exposure
+        Make the output report on the exposure for various observation types
         '''
         
         if self._seqid is False:
