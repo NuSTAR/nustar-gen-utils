@@ -119,30 +119,91 @@ class Observation():
     ----------
     path: str, optional, default './'
         The top-level working directory. All paths are assumed to be relative to this
-        location
+        location. This should be one level above the sequence ID location.
     
     seqid: str
-        The sequence id that you're going to be working with. Data are assumed to be
-        obs.path+obs.seqid+`/event_cl/`. Set via set_seqid or when you create an
-        instance of Observation()
+        The sequence id for the observation
+ 
+    evdir: str, optional, default obs.datapath+'event_cl'
+        Full path to the directory containing the event files
+        
+    out_path: str, optional, default is the obs.evdir
+        Full path to the desired output location
+        
     '''
         
-    def __init__(self, path='./', seqid=False):
-        self.path=path
+    def __init__(self, path='./', seqid=False, evdir=False,
+                out_path=False):
+        self._path=path
         self.modules = ['A', 'B']
-        self._source_position=None
-        self._seqid=False
-        self.observation_date=None
-
-        if seqid is not False:
-            self.set_seqid = seqid
+        
+        self._datapath = False
+        
+        self._evdir_lock=False
+        # If you specify the evdir location, make sure nothing can change this
+        if evdir is not False:
+            self._set_evdir(evdir, lock=True)
             
-        self._out_path=False
+        if seqid is False:
+            self._seqid=False
+        else:
+            self._set_seqid(seqid)
+
+
+        if out_path is False:
+            self.set_outpath(self.evdir)
+        else:
+            self.set_outpath(out_path)
+
+
+    @property
+    def path(self):
+        '''
+        Returns the top-level path
+        '''
+        return self._path
+
+
+    
+    def _set_datapath(self, value):
+        '''
+        Set the output path.
+        '''
+        self._datapath=value
+        assert os.path.isdir(self._datapath), f"Output path does not exist! {self._datapath})"
+        
+        return
+    @property
+    def observation_date(self):
+        '''
+        Returns the date of the observation parsed from the file headers
+        '''
+        return self._observation_date
+
+
+    def _set_evdir(self, value, lock=False):
+        '''
+        Set the output path.
+        '''
+        
+        if self._evdir_lock is False:
+            self._evdir=value
+        assert os.path.isdir(self._evdir), f"Event file path does not exist! {self._evdir}"
+        # Set the lock flag
+        if lock is True:
+            self._evdir_lock=True
+        return
+    @property
+    def evdir(self):
+        '''
+        Returns the event file directory
+        '''
+        return self._evdir
 
     @property
     def seqid(self):
         '''
-        Returns the current sequence ID. Data are assumed to be in obs.path+obs.method
+        Returns the current sequence ID
         '''
         return self._seqid
         
@@ -154,7 +215,15 @@ class Observation():
         all event files.
         '''
         return self._exposure
+    
+    @property
+    def datapath(self):
+        '''
+        Returns the path to the data directory
+        '''
+        return self._datapath
         
+    
     @property
     def source_position(self):
         '''
@@ -200,20 +269,26 @@ class Observation():
         '''
         return self._out_path
 
-    def set_seqid(self, value):
-        '''Set the sequence ID. Raise error if path+sequence doesn't exist. Finds
-        clean event files and parses the input fits header to populate the other'''
-        if os.path.isdir(self.path+value):
-            self._seqid = value
-        else:
-            raise ValueError(f"Path does not exist! {self.path+value})")
-        self._datapath=self.path+self._seqid
+    def _set_seqid(self, value):
+        '''Set the sequence ID. Raise error if obs.path+obs.seqid doesn't exist. Finds
+        clean event files and parses the input fits header to populate the other
+        Observation() attributes.'''
+        
+        self._seqid=value
+        self._set_datapath(self._path+self._seqid)
         
         # Set subdirectories
         self._hkdir=self._datapath+'/hk/'
-        self.evdir=self._datapath+'/event_cl/'
         self._auxdir=self._datapath+'/auxil/'
+
+        if self._evdir_lock is False:
+            self._set_evdir(self._datapath+'/event_cl/')
+
         
+        # Check to make sure this exiss:
+        assert os.path.isdir(self.evdir), f'Event file path does not exist! {self.evdir}'
+        
+       
         self._find_cleaned_files()
         
         self._parse_header()
@@ -222,12 +297,10 @@ class Observation():
         '''
         Set the output path.
         '''
+        self._out_path=value
+        assert os.path.isdir(self._out_path), f"Output path does not exist! {self._out_path}"
         
-        if os.path.isdir(value):
-            self._out_path = value
-        else:
-            raise ValueError(f"Output path does not exist! {value})")
-        return self._out_path
+        return
 
     def _find_cleaned_files(self):
         '''
@@ -249,13 +322,11 @@ class Observation():
             for evtfile in self.science_files[mod]:
                 hdr = getheader(evtfile)
                 
-                if self.observation_date is None:
-                    self.observation_date = Time(hdr['DATE-OBS'], format='fits')
+                self._observation_date = Time(hdr['DATE-OBS'], format='fits')
                 
                 
-                if self._source_position is None:               
-                    self._source_position = \
-                            SkyCoord(hdr['RA_OBJ'], hdr['DEC_OBJ'], unit='deg')
+                self._source_position = \
+                        SkyCoord(hdr['RA_OBJ'], hdr['DEC_OBJ'], unit='deg')
                 
                 for ti in range(7):
                     keystr = f'{mod}'+f'{ti+1}'.zfill(2)
