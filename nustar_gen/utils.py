@@ -312,8 +312,7 @@ def make_straylight_arf(det1im, regfile, filt_file, mod, outpath=None):
     arf_hdu[1].header = arf_header[0:26]
 
     # Mock up an ARF that's flat with just the detector area
-#    arf['SPECRESP'] = [area.value for x in arf['SPECRESP']]
-    arf['SPECRESP'] = [1.0 for x in arf['SPECRESP']]
+    arf['SPECRESP'] = [area.value for x in arf['SPECRESP']]
 
 
     caldb = os.environ['CALDB']
