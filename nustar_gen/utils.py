@@ -251,8 +251,8 @@ def make_straylight_arf(det1im, regfile, filt_file, mod, outpath=None):
     
     filt_file : str
         Full path to the DET1 screened event file (i.e. output of
-        nustar_gen.wrappers.extract_det1_events() ). This is only used for pulling out
-        the exposure in straylight_area.
+        nustar_gen.wrappers.extract_det1_events() ). This used to scale the ARF by
+        the number of 3--10 keV counts on each detector.
 
     mod : str
         'A' or 'B'
@@ -273,6 +273,8 @@ def make_straylight_arf(det1im, regfile, filt_file, mod, outpath=None):
     from astropy.io import fits
     import glob
     from nustar_gen import io
+    from nustar_gen.utils import energy_to_chan
+    
     
         # Check to see that all files exist:
     assert os.path.isfile(det1im), \
@@ -295,7 +297,8 @@ def make_straylight_arf(det1im, regfile, filt_file, mod, outpath=None):
     # Use counts relative scaling to blend the ARFs:
     ev_hdu = fits.open(filt_file)
     evts = ev_hdu[1].data
-    dethist, detedges = np.histogram(evts['DET_ID'], range=[0, 3],bins = 4)
+    scale_evts = evts[ (evts['PI']>energy_to_chan(3.)) & (evts['PI'] < energy_to_chan(10.) )]
+    dethist, detedges = np.histogram(scale_evts['DET_ID'], range=[0, 3],bins = 4)
     totcts = dethist.sum()
     scale = [ float(x) / totcts for x in dethist]
     ev_hdu.close()
@@ -309,7 +312,8 @@ def make_straylight_arf(det1im, regfile, filt_file, mod, outpath=None):
     arf_hdu[1].header = arf_header[0:26]
 
     # Mock up an ARF that's flat with just the detector area
-    arf['SPECRESP'] = [area.value for x in arf['SPECRESP']]
+#    arf['SPECRESP'] = [area.value for x in arf['SPECRESP']]
+    arf['SPECRESP'] = [1.0 for x in arf['SPECRESP']]
 
 
     caldb = os.environ['CALDB']
