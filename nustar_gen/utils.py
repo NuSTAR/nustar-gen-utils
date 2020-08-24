@@ -347,9 +347,23 @@ def validate_det1_region(regfile):
     """
     err=-1
     from regions.io.ds9.read import DS9Parser
-    assert os.path.isfile(regfile), f'{regilfe} does not exist!'
+    from regions import read_ds9
+    assert os.path.isfile(regfile), f'{regfile} does not exist!'
     
     with open(regfile) as fh: 
         region_string = fh.read()
     parser = DS9Parser(region_string)
-    assert parser.coordsys == 'image', f'Region coordinate system is {parser.coordsys}, not image!'
+    assert parser.coordsys == 'image', \
+        f'Region coordinate system is {parser.coordsys}, not image!'
+
+    # Check to make sure tha the first region in the file is an "include" region
+    reg = read_ds9(regfile)
+    for ri in reg:
+        assert ri.meta['include'] is True, \
+            f'\n {regfile} has an exclusion region first! \n Put the source region first instead!'
+
+
+    
+    
+
+
