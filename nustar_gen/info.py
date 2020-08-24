@@ -108,6 +108,54 @@ class NuSTAR():
         this_time = TimeDelta(met, format='sec', scale ='tt') + self.ref_epoch
         return this_time
 
+    def rate_conversion(self, rate, incident=False):
+        '''
+        Converts observed counts per second into an incident rate
+    
+        Parameters
+        ----------
+        rate: float
+            Unitless NuSTAR MET seconds.
+
+        Other Parameters
+        ----------------
+    
+        incident: boolean, optional, False
+            If False, converts between measured and incident rates
+            If True, converts between incident and measured rates.
+    
+        Returns
+        -------
+    
+        rate: float
+            Measured/incident rate if the incident parameters is False/True
+    
+        '''
+    # 
+    #     Examples
+    #     --------
+    #     >>> ns = NuSTAR()
+    #     >>> met = 315578085.0
+    #     >>> time = ns.met_to_time(met)
+    #     >>> print(time.fits)
+    #     2020-01-01T12:34:42.000
+    #     
+    #     
+    # 
+    #     
+    
+
+        # Rate conversions from Gnoll, which basically say that any time you measure a
+        # count you induce 2.5 ms of livetime losses.
+
+        
+        if incident is True:
+            # Convert from incident to meaured rate
+           result = rate / (1.0 + rate * 2.5e-3)
+        else:
+            # Convert from measured to incident rate
+            result = rate / (1.0 - rate * 2.5e-3)
+        return result
 
 
 
