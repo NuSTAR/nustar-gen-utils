@@ -174,6 +174,12 @@ def straylight_area(det1im, regfile, evf):
     ns = info.NuSTAR()
     det1_pixarea = (ns.pixel_um.to(u.cm))**2
     
+    # Define pixel coordinates for use below    
+    coords = np.array(np.meshgrid(range(360), range(360)))
+    pix = PixCoord(coords[0, :], coords[1, :])
+
+
+    # Loop over every exposure map HDU
     hdu = fits.open(det1im)
     exp_area = 0
     for ii, ihdu in enumerate(hdu):
@@ -182,7 +188,9 @@ def straylight_area(det1im, regfile, evf):
         exp += ihdu.header['DURATION']
         expim = ihdu.data
         
-         # Find the include regions first:
+        # Find the include regions first. Should be agnostic about what order you
+        # put the regions in.
+        
         # Loop over regions and find those that are include first:
         set=False
 
@@ -190,38 +198,40 @@ def straylight_area(det1im, regfile, evf):
             if (ri.meta['include']) is False:
                 continue
             if set is False:
-                all_reg=ri
+                # Generate a base mask:
+                # Defaults to False
+                all_mask = np.array(expim).astype(bool)
+                all_mask[:] = False
                 set=True
-            else:
-                # OR inclusive logic to add multiple regions if you want to
-                all_reg = all_reg.union(ri)
+        
+            # Turn on any pixels in the mask for the source
+            rm = ri.contains(pix)
+            all_mask = all_mask | rm
 
-        source_mask = all_reg.to_mask()
-#        exp_area += source_mask.multiply(ihdu.data).sum()
-
-        # Now loop over the excluded regions:
+        # Mask out the exclusion regions:
         set = False
         for ri in reg:
             if (ri.meta['include']) is True:
                 continue
             if set is False:
-                excl_reg = ri
-                set = True
-            else:
-                excl_reg = excl_reg.union(ri)
+                # Defaults to False
+                reg_mask = np.array(expim).astype(bool)
+                reg_mask[:] = True
+                set=True
+            
+            # Will return "True" for regions that are *not* in the exclusion region.
+            rm = ri.contains(pix)
+            reg_mask = reg_mask & rm
+    
+        # If you had an exclusion region, do an & since reg_mask will
+        # have True for regions NOT in the exclusion region
         if set is True:
-            merge_region = all_reg.intersection(excl_reg)
+            # Invert reg_mask
+            src_mask = all_mask & reg_mask
         else:
-            merge_region = all_reg
-        
-        # Brute force a mask, because below was being weird
-        coords = np.array(np.meshgrid(range(360), range(360)))
-        pix = PixCoord(coords[0, :], coords[1, :])
-        mask = merge_region.contains(pix)        
-        exp_area += ihdu.data[mask].sum()
-        
-#            excl_area = excl_overlap.to_mask().multiply(ihdu.data).sum()
-#            exp_area -= excl_area
+            src_mask = all_mask
+
+        exp_area += expim[src_mask].sum()
         
     hdu.close()
     area = (exp_area * det1_pixarea) / exp
