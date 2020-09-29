@@ -833,8 +833,8 @@ def extract_det1_events(infile, regfile, clobber=True, outpath=False):
     return outfile
 
 def make_det1_lightcurve(infile, mod, obs,
-    barycorr=False, time_bin=100*u.s, mode='01',
-    elow=3, ehigh=20, stemout=False):
+    time_bin=100*u.s, mode='01',
+    elow=3, ehigh=20, stemout=False, gtifile=False):
     '''
     Generate a script to run nuproducts to make a lightcurve using the whole
     FoV and turning off all vignetting and PSF effects. Assumes that infile 
@@ -856,10 +856,6 @@ def make_det1_lightcurve(infile, mod, obs,
     
     Other Parameters
     -------------------
-    
-    barycorr: bool 
-        Default is 'False'. If 'True', then queries the infile for the OBJ J2000
-        coordinates and uses these for the barycenter correction.
         
     elow: float, optional, default = 3 keV
         Low-energy bound
@@ -870,6 +866,9 @@ def make_det1_lightcurve(infile, mod, obs,
     mode: str, optional, default is '01'
         Optional. Used to specify stemout if you're doing mode06 analysis and want
         to specify output names that are more complicated.
+        
+    gtifile: str
+        Path to a GTI file. If this is set, then this is passed to nuproducts.
     
     stemout: str, optional
         Use the specified stemout string when calling nuproducts. Otherwise
@@ -925,11 +924,8 @@ def make_det1_lightcurve(infile, mod, obs,
         # Turn off all of the time-dependent corrections for the pointing here
         f.write(f'lcpsfflag=no lcexpoflag=no lcvignflag=no ')
         
-        if barycorr:
-            attorb=evdir+f'/nu{seqid}{mod}.attorb'
-            f.write(f'barycorr=yes srcra_barycorr={ra} srcdec_barycorr={dec} ')
-            f.write(f'orbitfile={attorb} ')
-            
+        if (gtifile != False):
+            f.write(f'usrgtifile={gtifile} ')    
         f.write('clobber=yes')
         
     os.chmod(lc_script, stat.S_IRWXG+stat.S_IRWXU)
