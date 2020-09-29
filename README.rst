@@ -22,7 +22,7 @@ Nuclear Spectroscopic Telescope ARray
 Installation
 ------------
 
-We require at least python 3.6 for this installation as well as the other dependencies
+We require at least python 3.7 for this installation as well as the other dependencies
 listed in requirements.txt.
 
 To install these via conda, do:
