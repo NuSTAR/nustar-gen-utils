@@ -7,6 +7,7 @@ __pycache__/
 notebooks/example_data/*/*/*keV.fits
 notebooks/*fits
 notebooks/example_data/*/products
+notesbooks/*foo
 
 # macOS
 .DS_Store
