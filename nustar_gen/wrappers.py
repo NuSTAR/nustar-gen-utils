@@ -356,7 +356,7 @@ def make_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False, usrgti
 
     
     # Generate outfile name
-    outfile = outdir + '/'+sname+f'_{elow}to{ehigh}keV.fits'
+    outfile = outdir+sname+f'_{elow}to{ehigh}keV.fits'
     
     if (os.path.exists(outfile)) & (~clobber):
         warnings.warn('make_image: %s exists, use clobber=True to regenerate' % (outfile))
