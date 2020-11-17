@@ -18,6 +18,7 @@ class NuSTAR():
         self._pixel_um = self._raw_pixel / 5.
         self._pixel = 2.54 * u.arcsec
         self._launch = Time('2012-06-13T00:00:00')
+        self._tick = 16./14745600. # 16 samples at 14.7456 Mhz
 
     @property
     def launch(self):
@@ -41,6 +42,7 @@ class NuSTAR():
         return self._pixel
 
 
+
     @property
     def pixel_um(self):
         '''
@@ -48,6 +50,12 @@ class NuSTAR():
         '''
         return self._pixel_um
 
+    @property
+    def tick(self):
+        '''
+        Returns the clock resolution, nominally 16 samples at 14.7456 Mhz
+        '''
+        return self._tick
 
     def time_to_met(self, time):
         ''' 
