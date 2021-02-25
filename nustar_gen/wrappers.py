@@ -443,7 +443,7 @@ def extract_sky_events(infile, regfile, clobber=True, outpath=False):
     
     return outfile
 
-def barycenter_events(obs, infile, mod='A'):
+def barycenter_events(obs, infile, mod='A', barycorr_pars=None):
     '''
     Run barycorr on an event file. 
 
@@ -461,11 +461,10 @@ def barycenter_events(obs, infile, mod='A'):
     Other Parameters
     -------------------
 
-    TO BE IMPLEMENTED
+    barycorr_pars: dict
+        additional parameters to be passed to barycorr,
+        in the format {'refframe': 'icrs', 'ra': 123.456}
 
-    clockfile: str
-        Path to the clockfile you want to use. Default is to use the CALDB clockfile
-        
     '''
 
     # Locate the attorb file:
@@ -481,16 +480,23 @@ def barycenter_events(obs, infile, mod='A'):
 
     sname=os.path.basename(infile)
     sname=os.path.splitext(sname)[0]
-    # Generate outfile name
-    outfile = outdir + '/'+sname+f'_barycorr.fits'
+    if barycorr_pars is None:
+        barycorr_pars = {}
+    if 'outfile' not in barycorr_pars:
+        # Generate outfile name
+        barycorr_pars['outfile'] = outdir + '/'+sname+f'_barycorr.fits'
+    if 'ra' not in barycorr_pars:
+        barycorr_pars['ra'] = obs.source_position.ra.deg
+    if 'dec' not in barycorr_pars:
+        barycorr_pars['dec'] = obs.source_position.dec.deg
+        
     bary_sh = outdir+'/run_bary_'+sname+'.sh'
 
-    
     with open(bary_sh, 'w') as f:
         f.write(f'barycorr infile={infile} clobber=yes ')
-        f.write(f'outfile={outfile} orbitfiles={attorb} ')
-        f.write(f'ra={obs.source_position.ra.deg} dec={obs.source_position.dec.deg} ')
-    
+        f.write(f'orbitfiles={attorb} ')
+        for par in barycorr_pars:
+            f.write(f'{par}={barycorr_pars[par]} ')
     
     os.environ['HEADASNOQUERY'] = ""
     os.environ['HEADASPROMPT'] = "/dev/null"
