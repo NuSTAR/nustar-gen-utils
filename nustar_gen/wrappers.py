@@ -49,6 +49,11 @@ def make_spectra(infile, mod, src_reg,
     _check_environment()
 
     # Check to see that all files exist:
+    
+    # Account for the case where you only get the filename (i.e. if you're
+    # in the current working directory)
+    infile = os.path.abspath(infile)
+    
     assert os.path.isfile(infile), 'make_spectra: infile does not exist!'
     assert os.path.isfile(src_reg), 'make_spectra: src_reg does not exist!'
 
@@ -77,7 +82,7 @@ def make_spectra(infile, mod, src_reg,
             pass    
         
     stemout = f'nu{seqid}{mod}{mode}_{reg_base}'
-    lc_script = outdir+f'/runspec_{stemout}.sh'    
+    lc_script = os.path.join(outdir, f'runspec_{stemout}.sh')
     
     
    
@@ -149,6 +154,10 @@ def make_lightcurve(infile, mod, src_reg,
     _check_environment()
 
     # Check to see that all files exist:
+    # Account for the case where you only get the filename (i.e. if you're
+    # in the current working directory)
+    infile = os.path.abspath(infile)
+    
     assert os.path.isfile(infile), 'make_lightcurve: infile does not exist!'
     assert os.path.isfile(src_reg), 'make_lightcurve: src_reg does not exist!'
 
@@ -176,7 +185,7 @@ def make_lightcurve(infile, mod, src_reg,
             pass    
     time_bin = (time_bin.to(u.s)).value
     stemout = f'nu{seqid}{mod}{mode}_{reg_base}_{elow}to{ehigh}_{time_bin:3.4}s'
-    lc_script = outdir+f'/runlc_{stemout}.sh'    
+    lc_script = os.path.join(outdir, f'runlc_{stemout}.sh')  
     
     
     pi_low = energy_to_chan(elow)
@@ -260,7 +269,7 @@ def make_exposure_map(obs, mod, vign_energy = False,
     
     # Construct the nuexpomap call:
     print(obs.seqid, mod)
-    expo_script = obs.out_path+'/runexpo_'+obs.seqid+mod+'.sh'
+    expo_script = os.path.join(obs.out_path, 'runexpo_'+obs.seqid+mod+'.sh')
     expo = open(expo_script, 'w')
     
     cmd_string = 'nuexpomap '
@@ -326,6 +335,11 @@ def make_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False, usrgti
     _check_environment()
 
     # Check if input file exists:
+    
+    # Account for the case where you only get the filename (i.e. if you're
+    # in the current working directory)
+    infile = os.path.abspath(infile)
+    
     try:
         with open(infile) as f:
             pass
@@ -356,7 +370,7 @@ def make_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False, usrgti
 
     
     # Generate outfile name
-    outfile = outdir+'/'+sname+f'_{elow}to{ehigh}keV.fits'
+    outfile = os.path.join(outdir, sname+f'_{elow}to{ehigh}keV.fits')
     
     if (os.path.exists(outfile)) & (~clobber):
         warnings.warn('make_image: %s exists, use clobber=True to regenerate' % (outfile))
@@ -402,6 +416,10 @@ def extract_sky_events(infile, regfile, clobber=True, outpath=False):
     _check_environment()
 
     # Check if input file exists:
+    
+    # Account for the case where you only get the filename (i.e. if you're
+    # in the current working directory)
+    infile = os.path.abspath(infile)
     try:
         with open(infile) as f:
             pass
@@ -430,7 +448,7 @@ def extract_sky_events(infile, regfile, clobber=True, outpath=False):
     rname = os.path.splitext(rshort)[0]
     
     # Generate outfile name
-    outfile = outdir + '/'+sname+f'_{rname}.evt'
+    outfile = os.path.join(outdir, sname+f'_{rname}.evt')
 
     if (os.path.exists(outfile)) & (~clobber):
         warnings.warn('extract_sky_events: %s exists, use clobber=True to regenerate' % (outfile))
@@ -471,6 +489,11 @@ def barycenter_events(obs, infile, mod='A', barycorr_pars=None):
     evdir = obs.evdir
     attorb = f'{obs.evdir}nu{obs.seqid}{mod}.attorb'
     
+    # Account for the case where you only get the filename (i.e. if you're
+    # in the current working directory)
+    infile = os.path.abspath(infile)
+    
+    
     # Trim the filename:
     if obs.out_path is False:
         outdir = os.path.dirname(infile)
@@ -490,7 +513,7 @@ def barycenter_events(obs, infile, mod='A', barycorr_pars=None):
     if 'dec' not in barycorr_pars:
         barycorr_pars['dec'] = obs.source_position.dec.deg
         
-    bary_sh = outdir+'/run_bary_'+sname+'.sh'
+    bary_sh = os.path.join(outdir, 'run_bary_'+sname+'.sh')
 
     with open(bary_sh, 'w') as f:
         f.write(f'barycorr infile={infile} clobber=yes ')
@@ -538,6 +561,11 @@ def apply_gti(infile, gtifile, clobber=True, outpath=False):
     _check_environment()
 
     # Check if input file exists:
+    
+    # Account for the case where you only get the filename (i.e. if you're
+    # in the current working directory)
+    infile = os.path.abspath(infile)
+    
     try:
         with open(infile) as f:
             pass
@@ -566,7 +594,7 @@ def apply_gti(infile, gtifile, clobber=True, outpath=False):
     rname = os.path.splitext(rshort)[0]
     
     # Generate outfile name
-    outfile = outdir + '/'+sname+f'_{rname}.evt'
+    outfile = os.path.join(outdir, sname+f'_{rname}.evt')
 
     if (os.path.exists(outfile)) & (~clobber):
         warnings.warn('apply_gti: %s exists, use clobber=True to regenerate' % (outfile))
@@ -731,6 +759,11 @@ def make_det1_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False):
 
 
     # Check if input file exists:
+    
+    # Account for the case where you only get the filename (i.e. if you're
+    # in the current working directory)
+    infile = os.path.abspath(infile)
+    
     try:
         with open(infile) as f:
             pass
@@ -749,7 +782,7 @@ def make_det1_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False):
     sname = os.path.splitext(sname)[0]
     
     # Generate outfile name
-    outfile = outdir + '/'+sname+f'_{elow}to{ehigh}keV_det1.fits'
+    outfile = os.path.join(outdir, sname+f'_{elow}to{ehigh}keV_det1.fits')
        
     if (os.path.exists(outfile)) & (~clobber):
         warnings.warn('make_image: %s exists, use clobber=True to regenerate' % (outfile))
@@ -799,6 +832,11 @@ def extract_det1_events(infile, regfile, clobber=True, outpath=False):
     validate_det1_region(regfile)
 
     # Check if input file exists:
+    
+    # Account for the case where you only get the filename (i.e. if you're
+    # in the current working directory)
+    infile = os.path.abspath(infile)
+    
     try:
         with open(infile) as f:
             pass
@@ -827,7 +865,7 @@ def extract_det1_events(infile, regfile, clobber=True, outpath=False):
     rname = os.path.splitext(rshort)[0]
     
     # Generate outfile name
-    outfile = outdir + '/'+sname+f'_{rname}.evt'
+    outfile = os.path.join(outdir, sname+f'_{rname}.evt')
 
     if (os.path.exists(outfile)) & (~clobber):
         warnings.warn('extract_det1_events: %s exists, use clobber=True to regenerate' % (outfile))
@@ -890,6 +928,11 @@ def make_det1_lightcurve(infile, mod, obs,
     _check_environment()
 
     # Check to see that all files exist:
+    
+    # Account for the case where you only get the filename (i.e. if you're
+    # in the current working directory)
+    infile = os.path.abspath(infile)
+    
     assert os.path.isfile(infile), 'make_det1_lightcurve: infile does not exist!'
 
 
@@ -913,7 +956,7 @@ def make_det1_lightcurve(infile, mod, obs,
     if stemout is False:
         stemout = f'nu{seqid}{mod}{mode}_full_FoV_{elow}to{ehigh}_{time_bin}s'
     
-    lc_script = f'{outdir}/rundet1lc_{stemout}.sh'    
+    lc_script = os.path.join(outdir ,f'rundet1lc_{stemout}.sh')
     
     pi_low = energy_to_chan(elow)
     pi_high = energy_to_chan(ehigh)
@@ -985,6 +1028,11 @@ def make_det1_spectra(infile, mod, obs,
     # Make sure environment is set up properly
     _check_environment()
 
+    # Account for the case where you only get the filename (i.e. if you're
+    # in the current working directory)
+    infile = os.path.abspath(infile)
+    
+
     # Check to see that all files exist:
     assert os.path.isfile(infile), f'make_det1_spectra: {infile} does not exist!'
 #    assert os.path.isfile(src_reg), 'make_det1_spectra: src_reg does not exist!'
@@ -1017,7 +1065,7 @@ def make_det1_spectra(infile, mod, obs,
     if stemout is False:
         stemout = basename(infile).split('.')[0]
         
-    lc_script = outdir+f'/rundet1spec_{stemout}.sh'    
+    lc_script = os.path.join(outdir, '/rundet1spec_{stemout}.sh')
     
    
     with open(lc_script, 'w') as f:
