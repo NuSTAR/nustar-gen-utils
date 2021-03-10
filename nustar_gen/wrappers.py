@@ -139,6 +139,9 @@ def make_lightcurve(infile, mod, src_reg,
     ehigh: float
         High-energy bound. Default is 20 keV.
     
+    time_bin: astropy unit
+        Length of the time bin. Default is 100*u.s
+    
     outpath: str
         Optional. Default is to put the lightcurves in the same location as infile
         
@@ -908,7 +911,10 @@ def make_det1_lightcurve(infile, mod, obs,
     
     ehigh: float, optional, default is 20 keV
         High-energy bound
-            
+        
+    time_bin: astropy unit
+        Length of the time bin. Default is 100*u.s
+    
     mode: str, optional, default is '01'
         Optional. Used to specify stemout if you're doing mode06 analysis and want
         to specify output names that are more complicated.
@@ -936,17 +942,9 @@ def make_det1_lightcurve(infile, mod, obs,
     assert os.path.isfile(infile), 'make_det1_lightcurve: infile does not exist!'
 
 
-#    evdir = os.path.dirname(infile)
     evdir = obs.evdir
     seqid = obs.seqid
-#    seqid = os.path.basename(os.path.dirname(evdir))
     outdir = obs.out_path
-    
-#     if outpath is None:
-#         outdir = evdir
-#     else:
-#         outdir = outpath
-    
     
     hdr = getheader(infile)
     ra = hdr['RA_OBJ']
@@ -1065,7 +1063,7 @@ def make_det1_spectra(infile, mod, obs,
     if stemout is False:
         stemout = basename(infile).split('.')[0]
         
-    lc_script = os.path.join(outdir, '/rundet1spec_{stemout}.sh')
+    lc_script = os.path.join(outdir, f'rundet1spec_{stemout}.sh')
     
    
     with open(lc_script, 'w') as f:

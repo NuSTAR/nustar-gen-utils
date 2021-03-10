@@ -289,7 +289,7 @@ def make_straylight_arf(det1im, regfile, filt_file, mod, obs):
 
     outdir = obs.out_path
     
-    out_arf = outdir+'/'+os.path.splitext(os.path.basename(filt_file))[0]+'.arf'
+    out_arf = os.path.join(outdir, os.path.splitext(os.path.basename(filt_file))[0]+'.arf')
 
     # Get the effective are target:
     area = straylight_area(det1im, regfile, filt_file)
@@ -333,7 +333,7 @@ def make_straylight_arf(det1im, regfile, filt_file, mod, obs):
     be_file = io.find_be_arf()
     be_arf = fits.getdata(be_file, 1)
 
-    arf['SPECRESP'] *= be_arf['SPECRESP']
+    arf['SPECRESP'] *= be_arf['ATT']
 
     arf_hdu.writeto(out_arf, overwrite=True)
     arf_hdu.close()
