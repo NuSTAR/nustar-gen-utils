@@ -49,6 +49,11 @@ def make_spectra(infile, mod, src_reg,
     _check_environment()
 
     # Check to see that all files exist:
+    
+    # Account for the case where you only get the filename (i.e. if you're
+    # in the current working directory)
+    infile = os.path.abspath(infile)
+    
     assert os.path.isfile(infile), 'make_spectra: infile does not exist!'
     assert os.path.isfile(src_reg), 'make_spectra: src_reg does not exist!'
 
@@ -149,6 +154,10 @@ def make_lightcurve(infile, mod, src_reg,
     _check_environment()
 
     # Check to see that all files exist:
+    # Account for the case where you only get the filename (i.e. if you're
+    # in the current working directory)
+    infile = os.path.abspath(infile)
+    
     assert os.path.isfile(infile), 'make_lightcurve: infile does not exist!'
     assert os.path.isfile(src_reg), 'make_lightcurve: src_reg does not exist!'
 
@@ -326,6 +335,11 @@ def make_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False, usrgti
     _check_environment()
 
     # Check if input file exists:
+    
+    # Account for the case where you only get the filename (i.e. if you're
+    # in the current working directory)
+    infile = os.path.abspath(infile)
+    
     try:
         with open(infile) as f:
             pass
@@ -402,6 +416,10 @@ def extract_sky_events(infile, regfile, clobber=True, outpath=False):
     _check_environment()
 
     # Check if input file exists:
+    
+    # Account for the case where you only get the filename (i.e. if you're
+    # in the current working directory)
+    infile = os.path.abspath(infile)
     try:
         with open(infile) as f:
             pass
@@ -471,6 +489,11 @@ def barycenter_events(obs, infile, mod='A', barycorr_pars=None):
     evdir = obs.evdir
     attorb = f'{obs.evdir}nu{obs.seqid}{mod}.attorb'
     
+    # Account for the case where you only get the filename (i.e. if you're
+    # in the current working directory)
+    infile = os.path.abspath(infile)
+    
+    
     # Trim the filename:
     if obs.out_path is False:
         outdir = os.path.dirname(infile)
@@ -538,6 +561,11 @@ def apply_gti(infile, gtifile, clobber=True, outpath=False):
     _check_environment()
 
     # Check if input file exists:
+    
+    # Account for the case where you only get the filename (i.e. if you're
+    # in the current working directory)
+    infile = os.path.abspath(infile)
+    
     try:
         with open(infile) as f:
             pass
@@ -731,6 +759,11 @@ def make_det1_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False):
 
 
     # Check if input file exists:
+    
+    # Account for the case where you only get the filename (i.e. if you're
+    # in the current working directory)
+    infile = os.path.abspath(infile)
+    
     try:
         with open(infile) as f:
             pass
@@ -799,6 +832,11 @@ def extract_det1_events(infile, regfile, clobber=True, outpath=False):
     validate_det1_region(regfile)
 
     # Check if input file exists:
+    
+    # Account for the case where you only get the filename (i.e. if you're
+    # in the current working directory)
+    infile = os.path.abspath(infile)
+    
     try:
         with open(infile) as f:
             pass
@@ -890,6 +928,11 @@ def make_det1_lightcurve(infile, mod, obs,
     _check_environment()
 
     # Check to see that all files exist:
+    
+    # Account for the case where you only get the filename (i.e. if you're
+    # in the current working directory)
+    infile = os.path.abspath(infile)
+    
     assert os.path.isfile(infile), 'make_det1_lightcurve: infile does not exist!'
 
 
@@ -984,6 +1027,11 @@ def make_det1_spectra(infile, mod, obs,
     
     # Make sure environment is set up properly
     _check_environment()
+
+    # Account for the case where you only get the filename (i.e. if you're
+    # in the current working directory)
+    infile = os.path.abspath(infile)
+    
 
     # Check to see that all files exist:
     assert os.path.isfile(infile), f'make_det1_spectra: {infile} does not exist!'
