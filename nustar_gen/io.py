@@ -12,8 +12,7 @@ def find_be_arf():
     
     Returns
     -------
-    Full path to the Be window file, which should be included when this repo is
-    checked out
+    Full path to the Be window file in the CALDB
     
     Examples
     --------
@@ -22,9 +21,23 @@ def find_be_arf():
     True
     
     '''
-    curdir = os.path.dirname(__file__)
-    tempdir = os.path.join(curdir, 'templates')
-    be_arf_file = os.path.join(tempdir, 'be.arf')
+    
+    # Get the CALDB path:
+    caldb=os.environ["CALDB"]
+    print(caldb)
+    
+    subdir='data/nustar/fpm/bcf/instrument'
+    be_arf_file = os.path.join(caldb, subdir)
+    be_file = 'nuCabsparBe20100101v001.fits'
+    be_arf_file = os.path.join(be_arf_file, be_file)
+    
+    assert os.path.isfile(be_arf_file), \
+        f'find_be_arf: Check your CALDB. Be ARF file not found {be_arf_file}'
+    
+    
+#    curdir = os.path.dirname(__file__)
+#    tempdir = os.path.join(curdir, 'templates')
+#    be_arf_file = os.path.join(tempdir, 'be.arf')
     return be_arf_file
     
 def find_arf_template():
