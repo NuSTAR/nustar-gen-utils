@@ -199,6 +199,7 @@ class Observation():
         self._evdir_lock=False
         # If you specify the evdir location, make sure nothing can change this
         if evdir is not False:
+            evdir = os.path.absdir(evdir)
             self._set_evdir(evdir, lock=True)
             
         if seqid is False:
@@ -210,6 +211,7 @@ class Observation():
         if out_path is False:
             self.set_outpath(self.evdir)
         else:
+            out_path = os.path.abspath(out_path)
             self.set_outpath(out_path)
 
 
@@ -217,8 +219,9 @@ class Observation():
         '''
         Sets the path. Makes sure that path ends with a '/'
         '''
-        if not path.endswith('/'):
-            path +='/'
+        path = os.path.abspath(path)
+#         if not path.endswith('/'):
+#             path +='/'
         self._path = path
         return
     
@@ -347,7 +350,7 @@ class Observation():
         self._seqid=value
         
         
-        self._set_datapath(self._path+self._seqid)
+        self._set_datapath(os.path.join(self._path, self._seqid))
         
         # Set subdirectories
         self._hkdir=self._datapath+'/hk/'
