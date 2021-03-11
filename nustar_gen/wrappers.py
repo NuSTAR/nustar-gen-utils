@@ -271,7 +271,6 @@ def make_exposure_map(obs, mod, vign_energy = False,
     
     
     # Construct the nuexpomap call:
-    print(obs.seqid, mod)
     expo_script = os.path.join(obs.out_path, 'runexpo_'+obs.seqid+mod+'.sh')
     expo = open(expo_script, 'w')
     
