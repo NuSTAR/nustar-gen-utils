@@ -140,7 +140,7 @@ def make_lightcurve(infile, mod, src_reg,
         High-energy bound. Default is 20 keV.
     
     time_bin: astropy unit
-        Length of the time bin. Default is 100*u.s
+        Length of the time bin. Default is 100*u.s. Min is 1*u.s
     
     outpath: str
         Optional. Default is to put the lightcurves in the same location as infile
@@ -163,6 +163,8 @@ def make_lightcurve(infile, mod, src_reg,
     
     assert os.path.isfile(infile), 'make_lightcurve: infile does not exist!'
     assert os.path.isfile(src_reg), 'make_lightcurve: src_reg does not exist!'
+
+    assert time_bin.to(u.s) > 1*u.s, f'make_lightcurve: {time_bin} too fast, use another tool.'
 
     if bgd_reg != 'None':
         assert os.path.isfile(bgd_reg), 'make_lightcurve: bgd_reg does not exist!'
@@ -187,6 +189,9 @@ def make_lightcurve(infile, mod, src_reg,
     # directory already exists
             pass    
     time_bin = (time_bin.to(u.s)).value
+    
+    
+    
     stemout = f'nu{seqid}{mod}{mode}_{reg_base}_{elow}to{ehigh}_{time_bin:3.4}s'
     lc_script = os.path.join(outdir, f'runlc_{stemout}.sh')  
     
@@ -940,6 +945,7 @@ def make_det1_lightcurve(infile, mod, obs,
     
     assert os.path.isfile(infile), 'make_det1_lightcurve: infile does not exist!'
 
+    assert time_bin.to(u.s) > 1*u.s, f'make_det1_lightcurve: time_bin {time_bin} too fast, use another tool.'
 
     evdir = obs.evdir
     seqid = obs.seqid
