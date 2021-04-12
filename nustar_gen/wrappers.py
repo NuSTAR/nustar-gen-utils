@@ -801,7 +801,7 @@ def make_det1_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False):
     
     return outfile
 
-def extract_det1_events(infile, regfile, clobber=True, outpath=False):
+def extract_det1_events(infile, regfile, elow=3., ehigh=30., clobber=True, outpath=False):
     '''
     Spawn an xselect instance that produces a new event file screened using a det1 region
     file.
@@ -810,9 +810,17 @@ def extract_det1_events(infile, regfile, clobber=True, outpath=False):
     ----------
     infile: str
         Full path to the event file that you want to process
+
     regfile: str
         Full path to a ds9 region file (in physical coordinates) to be used to filter
         the events.
+
+    elow: float
+        Lowest energy to use (default is 3 keV)
+    
+    ehigh: float
+        Highest energy to use (default is 30 keV)
+        
                 
     Other Parameters
     ----------------
@@ -878,7 +886,13 @@ def extract_det1_events(infile, regfile, clobber=True, outpath=False):
         warnings.warn('extract_det1_events: %s exists, use clobber=True to regenerate' % (outfile))
     else:
         os.system("rm "+outfile)
-    xsel_file = _make_xselect_commands_det1_evts(infile, outfile, regfile)
+        
+    
+        
+#    xsel_file = _make_xselect_commands_det1_evts(infile, outfile, regfile)
+    xsel_file = _make_xselect_commands_det1_evts_pifilt(infile, outfile,
+                                                        regfile, elow, ehigh)
+
     os.system("xselect @"+xsel_file)
     os.system("rm -r -f "+xsel_file)
     
@@ -1118,6 +1132,39 @@ def _make_xselect_commands_det1_evts(infile, outfile, regfile):
     xsel.close()
     return 'xsel.xco'
 
+def _make_xselect_commands_det1_evts_pifilt(infile, outfile, regfile, elow, ehigh):
+    '''
+    Helper script to generate the xselect commands to extract events from
+    a given region.
+    '''
+    
+    import glob
+    for oldfile in glob.glob("session1*"):
+        os.system(f"rm {oldfile}")
+    
+    xsel=open("xsel.xco","w")
+    xsel.write("session1\n")
+    xsel.write("read events \n")
+    evdir=os.path.dirname(infile)
+    xsel.write(f'{evdir} \n ' )
+    evfile = os.path.basename(infile)
+    xsel.write(f'{evfile} \n ')
+    xsel.write('yes \n')
+    xsel.write('set xyname\n')
+    xsel.write('DET1X\n')
+    xsel.write('DET1Y\n')
+    xsel.write(f'filter region {regfile} \n')
+    pi_low = energy_to_chan(elow)
+    pi_high = energy_to_chan(ehigh)
+    xsel.write('filter pha_cutoff {} {} \n'.format(pi_low, pi_high))
+    xsel.write("extract events\n")
+    xsel.write("save events\n")
+    xsel.write("%s \n" % outfile)
+    xsel.write('n \n')
+    xsel.write('exit\n')           
+    xsel.write('n \n')
+    xsel.close()
+    return 'xsel.xco'
 
 
 
