@@ -199,7 +199,7 @@ class Observation():
         self._evdir_lock=False
         # If you specify the evdir location, make sure nothing can change this
         if evdir is not False:
-            evdir = os.path.absdir(evdir)
+            evdir = os.path.abspath(evdir)
             self._set_evdir(evdir, lock=True)
             
         if seqid is False:
