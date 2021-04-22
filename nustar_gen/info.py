@@ -383,7 +383,6 @@ class Observation():
         '''
         self.evtfiles = {}
         for mod in self.modules:
-            print(os.path.join(self._evdir, f'nu*{mod}*cl.evt'))
             self.evtfiles[mod] = sorted(glob.glob(os.path.join(self._evdir, f'nu*{mod}*cl.evt')))            
         return
         

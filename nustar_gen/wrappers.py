@@ -315,9 +315,9 @@ def make_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False, usrgti
     infile: str
         Full path to the file that you want to process
     elow: float
-        Low-energy band for the image
+        Low-energy band for the image. Default is 3 keV.
     ehigh: float
-        High-energy band for the image
+        High-energy band for the image. Default is 20 keV.
         
     Other Parameters
     ----------------
@@ -494,7 +494,8 @@ def barycenter_events(obs, infile, mod='A', barycorr_pars=None):
 
     # Locate the attorb file:
     evdir = obs.evdir
-    attorb = f'{obs.evdir}nu{obs.seqid}{mod}.attorb'
+    attorb = os.path.join(evdir, f'nu{obs.seqid}{mod}.attorb')
+
     
     # Account for the case where you only get the filename (i.e. if you're
     # in the current working directory)
@@ -514,7 +515,7 @@ def barycenter_events(obs, infile, mod='A', barycorr_pars=None):
         barycorr_pars = {}
     if 'outfile' not in barycorr_pars:
         # Generate outfile name
-        barycorr_pars['outfile'] = outdir + '/'+sname+f'_barycorr.fits'
+        barycorr_pars['outfile'] = os.path.join(outdir, sname+f'_barycorr.fits')
     if 'ra' not in barycorr_pars:
         barycorr_pars['ra'] = obs.source_position.ra.deg
     if 'dec' not in barycorr_pars:
@@ -534,7 +535,7 @@ def barycenter_events(obs, infile, mod='A', barycorr_pars=None):
     os.chmod(bary_sh, stat.S_IRWXG+stat.S_IRWXU)
     os.system(f'{bary_sh}')
  
-    return outfile
+    return barycorr_pars['outfile']
 
 def apply_gti(infile, gtifile, clobber=True, outpath=False):
     '''
@@ -741,9 +742,9 @@ def make_det1_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False):
     infile: str
         Full path tot eh file that you want to process
     elow: float
-        Low-energy band for the image
+        Low-energy band for the image. Default is 3 keV.
     ehigh: float
-        High-energy band for the image
+        High-energy band for the image. Default is 20 keV.
         
     Other Parameters
     ----------------
@@ -801,7 +802,7 @@ def make_det1_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False):
     
     return outfile
 
-def extract_det1_events(infile, regfile, elow=3., ehigh=30., clobber=True, outpath=False):
+def extract_det1_events(infile, regfile, elow=0., ehigh=165., clobber=True, outpath=False):
     '''
     Spawn an xselect instance that produces a new event file screened using a det1 region
     file.
@@ -816,10 +817,10 @@ def extract_det1_events(infile, regfile, elow=3., ehigh=30., clobber=True, outpa
         the events.
 
     elow: float
-        Lowest energy to use (default is 3 keV)
+        Lowest energy to use (default is 0 keV)
     
     ehigh: float
-        Highest energy to use (default is 30 keV)
+        Highest energy to use (default is 165 keV)
         
                 
     Other Parameters
@@ -1063,21 +1064,9 @@ def make_det1_spectra(infile, mod, obs,
     # Construct the output file name:
     
     
-#    hdr = getheader(infile)
     ra =obs.source_position.ra.deg
     dec = obs.source_position.dec.deg
     
-#     if outpath == 'None':
-#         outdir = evdir
-#     else:
-#         outdir = outpath
-#         try:
-#            os.makedirs(outdir)
-#         except FileExistsError:
-#     # directory already exists
-#             pass
-#    stemout = f'nu{seqid}{mod}{mode}_{reg_base}_det1'
-
     # Use the default stemout unless this is set
     if stemout is False:
         stemout = basename(infile).split('.')[0]
