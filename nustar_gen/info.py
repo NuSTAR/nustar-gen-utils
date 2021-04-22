@@ -383,8 +383,8 @@ class Observation():
         '''
         self.evtfiles = {}
         for mod in self.modules:
-            self.evtfiles[mod] = sorted(glob.glob(self.evdir+f'nu*{mod}*cl.evt*'))
-            
+            print(os.path.join(self._evdir, f'nu*{mod}*cl.evt'))
+            self.evtfiles[mod] = sorted(glob.glob(os.path.join(self._evdir, f'nu*{mod}*cl.evt')))            
         return
         
     def _parse_header(self):
