@@ -164,7 +164,7 @@ def make_lightcurve(infile, mod, src_reg,
     assert os.path.isfile(infile), 'make_lightcurve: infile does not exist!'
     assert os.path.isfile(src_reg), 'make_lightcurve: src_reg does not exist!'
 
-    assert time_bin.to(u.s) > 1*u.s, f'make_lightcurve: {time_bin} too fast, use another tool.'
+    assert time_bin.to(u.s) >= 1*u.s, f'make_lightcurve: {time_bin} too fast, use another tool.'
 
     if bgd_reg != 'None':
         assert os.path.isfile(bgd_reg), 'make_lightcurve: bgd_reg does not exist!'
@@ -960,7 +960,7 @@ def make_det1_lightcurve(infile, mod, obs,
     
     assert os.path.isfile(infile), 'make_det1_lightcurve: infile does not exist!'
 
-    assert time_bin.to(u.s) > 1*u.s, f'make_det1_lightcurve: time_bin {time_bin} too fast, use another tool.'
+    assert time_bin.to(u.s) >= 1*u.s, f'make_det1_lightcurve: time_bin {time_bin} too fast, use another tool.'
 
     evdir = obs.evdir
     seqid = obs.seqid
