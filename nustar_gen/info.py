@@ -190,13 +190,21 @@ class Observation():
         
     def __init__(self, path='./', seqid=False, evdir=False,
                 out_path=False):
+                                
         self.set_path(path)
-#        self._path=path
+
+        if out_path is False:
+            self.set_outpath(self.evdir)
+        else:
+            out_path = os.path.abspath(out_path)
+            self.set_outpath(out_path)
+
         self.modules = ['A', 'B']
         
         self._datapath = False
         
         self._evdir_lock=False
+
         # If you specify the evdir location, make sure nothing can change this
         if evdir is not False:
             evdir = os.path.abspath(evdir)
@@ -206,13 +214,6 @@ class Observation():
             self._seqid=False
         else:
             self._set_seqid(seqid)
-
-
-        if out_path is False:
-            self.set_outpath(self.evdir)
-        else:
-            out_path = os.path.abspath(out_path)
-            self.set_outpath(out_path)
 
 
     def set_path(self, path):
@@ -236,16 +237,6 @@ class Observation():
         
         return self._path
 
-
-    
-    def _set_datapath(self, value):
-        '''
-        Set the output path.
-        '''
-        self._datapath=value
-        assert os.path.isdir(self._datapath), f"Output path does not exist! {self._datapath})"
-        
-        return
     @property
     def observation_date(self):
         '''
@@ -256,7 +247,7 @@ class Observation():
 
     def _set_evdir(self, value, lock=False):
         '''
-        Set the output path.
+        Set the event directory.
         '''
         
         if self._evdir_lock is False:
@@ -287,15 +278,7 @@ class Observation():
         Returns an dict (with 'A' and 'B' as keys) with lists of exposures for
         all event files.
         '''
-        return self._exposure
-    
-    @property
-    def datapath(self):
-        '''
-        Returns the path to the data directory
-        '''
-        return self._datapath
-        
+        return self._exposure        
     
     @property
     def source_position(self):
@@ -349,15 +332,9 @@ class Observation():
         
         self._seqid=value
         
-        
-        self._set_datapath(os.path.join(self._path, self._seqid))
-        
-        # Set subdirectories
-        self._hkdir=self._datapath+'/hk/'
-        self._auxdir=self._datapath+'/auxil/'
-
         if self._evdir_lock is False:
             self._set_evdir(self._datapath+'/event_cl/')
+
 
         
         # Check to make sure this exiss:
