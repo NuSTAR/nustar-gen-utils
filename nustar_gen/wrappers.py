@@ -4,7 +4,7 @@ import warnings
 from nustar_gen.utils import energy_to_chan, validate_det1_region
 from astropy import units as u
 
-def make_spectra(infile, mod, src_reg,
+def make_spectra(infile, mod, src_reg, usrgti=False,
     mode='01', bgd_reg='None', outpath='None', runmkarf='yes', extended='no'):
     '''
     Generate a script to run nuproducts to extract a source (and optionally
@@ -37,6 +37,9 @@ def make_spectra(infile, mod, src_reg,
     outpath: str
         Optional. Default is to put the lightcurves in the same location as infile
         
+    usrgti: str
+        Optional. Full path to the GTI that you want to apply to the spectrum.
+        
     mode: str
         Optional. Used primarily if you're doing mode06 analysis and need to specify
         output names that are more complicated.
@@ -53,6 +56,8 @@ def make_spectra(infile, mod, src_reg,
     # Account for the case where you only get the filename (i.e. if you're
     # in the current working directory)
     infile = os.path.abspath(infile)
+
+
     
     assert os.path.isfile(infile), 'make_spectra: infile does not exist!'
     assert os.path.isfile(src_reg), 'make_spectra: src_reg does not exist!'
@@ -84,7 +89,11 @@ def make_spectra(infile, mod, src_reg,
     stemout = f'nu{seqid}{mod}{mode}_{reg_base}'
     lc_script = os.path.join(outdir, f'runspec_{stemout}.sh')
     
-    
+        # Parse GTI file if necessary    
+    if usrgti is not False:
+        rshort = os.path.basename(usrgti)
+        rname = os.path.splitext(rshort)[0]
+        stemout += f'_{rname}'
    
     with open(lc_script, 'w') as f:
         f.write('nuproducts imagefile=NONE lcfile=NONE bkglcfile=NONE ')
@@ -97,7 +106,9 @@ def make_spectra(infile, mod, src_reg,
             f.write(f'bkgextract=no ')
         else:
             f.write(f'bkgextract=yes bkgregionfile={bgd_reg} ')
-             
+        
+        if usrgti is not False:
+            f.write(f'usrgtifile={usrgti} ')
         f.write('clobber=yes')
         
     os.chmod(lc_script, stat.S_IRWXG+stat.S_IRWXU)
