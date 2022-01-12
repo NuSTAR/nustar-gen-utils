@@ -191,7 +191,25 @@ class Observation():
     def __init__(self, path='./', seqid=False, evdir=False,
                 out_path=False):
                                 
+        self._evdir_lock=False
+        self.modules = ['A', 'B']
+
+
         self.set_path(path)
+
+        # If you specify the evdir location, make sure nothing can change this
+        if evdir is not False:
+            evdir = os.path.abspath(evdir)
+            self._set_evdir(evdir, lock=True)
+            
+            
+        if seqid is False:
+            self._seqid=False
+        else:
+            self._set_seqid(seqid)
+
+
+
 
         if out_path is False:
             self.set_outpath(self.evdir)
@@ -199,21 +217,12 @@ class Observation():
             out_path = os.path.abspath(out_path)
             self.set_outpath(out_path)
 
-        self.modules = ['A', 'B']
         
-        self._datapath = False
         
-        self._evdir_lock=False
 
-        # If you specify the evdir location, make sure nothing can change this
-        if evdir is not False:
-            evdir = os.path.abspath(evdir)
-            self._set_evdir(evdir, lock=True)
+
             
-        if seqid is False:
-            self._seqid=False
-        else:
-            self._set_seqid(seqid)
+
 
 
     def set_path(self, path):
@@ -233,8 +242,6 @@ class Observation():
         '''
         Returns the top-level path
         '''
-        
-        
         return self._path
 
     @property
@@ -252,6 +259,10 @@ class Observation():
         
         if self._evdir_lock is False:
             self._evdir=value
+        else:
+            # Try the default:
+            self._evdir=os.path.join(self._path, )
+            
         assert os.path.isdir(self._evdir), f"Event file path does not exist! {self._evdir}"
         # Set the lock flag
         if lock is True:
@@ -333,10 +344,10 @@ class Observation():
         self._seqid=value
         
         if self._evdir_lock is False:
-            self._set_evdir(self._datapath+'/event_cl/')
+            # Try default
+            default_datapath = os.path.join(self._path, self._seqid)
+            self._set_evdir(os.path.join(default_datapath, 'event_cl'))
 
-
-        
         # Check to make sure this exiss:
         assert os.path.isdir(self.evdir), f'Event file path does not exist! {self.evdir}'
         
