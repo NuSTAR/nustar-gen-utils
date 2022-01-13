@@ -116,7 +116,7 @@ def make_spectra(infile, mod, src_reg, usrgti=False,
 
 
 def make_lightcurve(infile, mod, src_reg,
-    barycorr=False, time_bin=100*u.s, mode='01',
+    barycorr=False, time_bin=100*u.s, mode='01',usrgti=False,
     bgd_reg='None', outpath='None', elow=3, ehigh=20):
     '''
     Generate a script to run nuproducts
@@ -204,6 +204,14 @@ def make_lightcurve(infile, mod, src_reg,
     
     
     stemout = f'nu{seqid}{mod}{mode}_{reg_base}_{elow}to{ehigh}_{time_bin:3.4}s'
+    
+    
+            # Parse GTI file if necessary    
+    if usrgti is not False:
+        rshort = os.path.basename(usrgti)
+        rname = os.path.splitext(rshort)[0]
+        stemout += f'_{rname}'
+
     lc_script = os.path.join(outdir, f'runlc_{stemout}.sh')  
     
     
@@ -222,6 +230,10 @@ def make_lightcurve(infile, mod, src_reg,
         else:
             f.write(f'bkgextract=yes bkgregionfile={bgd_reg} ')
         f.write(f'binsize={time_bin} ')
+        
+        
+        if usrgti is not False:
+            f.write(f'usrgtifile={usrgti} ')
         
         if barycorr:
             attorb=evdir+f'/nu{seqid}{mod}.attorb'
