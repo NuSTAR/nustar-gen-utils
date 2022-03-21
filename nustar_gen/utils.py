@@ -95,7 +95,7 @@ def make_usr_gti(input_gtis, outfile='usrgti.fits', **kwargs):
         gti_stub['START'] = pair['START']
         gti_stub['STOP'] = pair['STOP']
         if ind == 0:
-            new_gti = gti_stub
+            new_gti = gti_stub.copy()
         else:
             new_gti = append_fits_entry(new_gti, gti_stub)
         
