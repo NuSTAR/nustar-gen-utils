@@ -905,7 +905,10 @@ def extract_det1_events(infile, regfile, elow=0., ehigh=165., clobber=True, outp
     rname = os.path.splitext(rshort)[0]
     
     # Generate outfile name
-    outfile = os.path.join(outdir, sname+f'_{rname}.evt')
+    if ( (elow == 0. ) & (ehigh==165.)):
+        outfile = os.path.join(outdir, sname+f'_{rname}.evt')
+    else:
+        outfile = os.path.join(outdir, sname+f'_{elow}to{ehigh}_{rname}.evt')
 
     if (os.path.exists(outfile)) & (~clobber):
         warnings.warn('extract_det1_events: %s exists, use clobber=True to regenerate' % (outfile))
