@@ -23,9 +23,7 @@ def find_be_arf():
     '''
     
     # Get the CALDB path:
-    caldb=os.environ["CALDB"]
-    print(caldb)
-    
+    caldb=os.environ["CALDB"]    
     subdir='data/nustar/fpm/bcf/instrument'
     be_arf_file = os.path.join(caldb, subdir)
     be_file = 'nuCabsparBe20100101v001.fits'
