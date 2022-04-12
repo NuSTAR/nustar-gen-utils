@@ -145,7 +145,7 @@ def straylight_area(det1im, regfile, evf):
 
     '''
     
-    from regions import read_ds9, PixCoord
+    from regions import Regions, PixCoord
     from astropy.io import fits
     from nustar_gen import info
     from astropy import units as u
@@ -160,7 +160,7 @@ def straylight_area(det1im, regfile, evf):
         f'straylight_area: Event file not found: {evf}'
 
 
-    reg = read_ds9(regfile)
+    reg = Regions.read(regfile)
     hdr = fits.getheader(evf)
     
     # exp = hdr['EXPOSURE']
@@ -347,7 +347,7 @@ def validate_det1_region(regfile):
     """
     err=-1
     from regions.io.ds9.read import DS9Parser
-    from regions import read_ds9
+    from regions import Regions
     assert os.path.isfile(regfile), f'{regfile} does not exist!'
     
     with open(regfile) as fh: 
@@ -357,7 +357,7 @@ def validate_det1_region(regfile):
         f'Region coordinate system is {parser.coordsys}, not image!'
 
     # Check to make sure tha the first region in the file is an "include" region
-    reg = read_ds9(regfile)
+    reg = Regions.read(regfile)
     for ri in reg:
         assert ri.meta['include'] is True, \
             f'\n {regfile} has an exclusion region first! \n Put the source region first instead!'
