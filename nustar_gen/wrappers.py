@@ -5,7 +5,8 @@ from nustar_gen.utils import energy_to_chan, validate_det1_region
 from astropy import units as u
 
 def make_spectra(infile, mod, src_reg, usrgti=False,
-    mode='01', bgd_reg='None', outpath='None', runmkarf='yes', extended='no'):
+    mode='01', bgd_reg='None', outpath='None', runmkarf='yes', extended='no',
+    oa_hist = False):
     '''
     Generate a script to run nuproducts to extract a source (and optionally
     a background) spectrum along with their response files.
@@ -109,6 +110,10 @@ def make_spectra(infile, mod, src_reg, usrgti=False,
         
         if usrgti is not False:
             f.write(f'usrgtifile={usrgti} ')
+        
+        if oa_hist is not False:
+            f.write(f'offaxishisto=DEFAULT ')
+            
         f.write('clobber=yes')
         
     os.chmod(lc_script, stat.S_IRWXG+stat.S_IRWXU)

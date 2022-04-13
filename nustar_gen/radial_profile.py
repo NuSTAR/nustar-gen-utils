@@ -327,4 +327,117 @@ def optimize_radius_snr(rind, rad_profile, radial_err, psf_profile,
 
 
 
+def make_obs_psf(oaa_file, module, out_dir = None, out_prefix='obs'):
+    ''' 
+    Create a synthetic PSF for a source. Note that you have to run nuproducts o
+    on the source *first* before you use this tool so that you know what the
+    distribution of off-axis angles and azimuthal rotations are for the source.
+    
+    Each file is based on the PSF at the correct off-axis location and with the
+    correct azimuthal rotation applied to match the data. This varies with energy,
+    so there will be a number of PSF files produced. The energy edges are:
+    3, 4, 5, 6, 8, 12, 20, and 80 keV based on the 2D CALDB PSFs
 
+    This script produces a number of files, each with a filename like:
+    psf2d_{out_prefix}_5.5keV_A.fits
+    ...where the energy given is the mid-point of the bin and the out_prefix is an
+    optional keyword (default is 'obs').
+    
+    The appropriate PSF should be matched with the energy bands used to produce
+    the image. See the example notebook for a demonstration of using this PSF.
+    
+    
+    Parameters
+    -----------
+    oaa_file : str
+        Path to the optical axis file from nuproducts
+        Will have a name like this: nu60501018002A01_srcA_offaxishisto.fits
+    
+    module : str
+        'A' or 'B'
+        
+    Other Parameters
+    ----------------
+    out_dir : str
+        Output path. If not specified, assumed os.getcwd() is where you want the file
+    out_prefix : str
+        Output PSF prefix. File will have a name like psf2_preix_
+    
+    Returns
+    -------
+    None
+    
+    
+    '''
+    from astropy.io import fits
+    from scipy.ndimage import rotate
+    
+    assert module in ['A','B'], f"make_obs_psf: module must be A or B, got {module}"
+    
+    
+    # CALDB check
+    if 'CALDB' not in os.environ:
+        print('Please set the %s environment variable first.' % env._CALDB_ENV)
+        return
+
+    if out_dir is None:
+        out_dir = os.getcwd()
+
+    
+    caldb = os.getenv('CALDB')
+    psfdir = os.path.join(caldb, 'data/nustar/fpm/bcf/psf/')
+    
+    
+    assert os.path.exists(oaa_file), \
+        f"make_obs_psf: OA hist file not found, got {oaa_file}"
+    oaa = fits.getdata(oaa_file)
+
+    # Set energy bands here. These are the ones used in the PSF files,
+    # so they can't be altered.
+    elow=np.array([3.,4.5,6.,8.,12.,20.])
+    ehi=np.array([4.5,6.,8.,12.,20.,80.])
+    emid=(elow+ehi)*0.5
+
+    index = 0
+
+    # Set up PSFs container
+    psfs = {}
+    for i in range(len(emid)):
+        psfs[f'{i+1}'] = np.zeros([325, 325])
+
+    psf_rot = {}
+    for i in range(6):
+        psf_rot[f'{i+1}'] = np.zeros([325, 325])
+
+    # Get the total duration from the OA hist file
+    tot_dur = oaa['DURATION'].sum()
+
+    index = -1
+    for row in oaa:
+        oa = row[0]
+        phi = row[1]
+        dur = row[2]
+        # Only do the ones with some duration there
+        if dur == 0.0:
+            continue
+
+        # See if you need to load the PSF again
+        ioaa = np.floor(oa/0.5)+1
+        if ioaa != index:
+            index=int(ioaa)
+            for i in range(len(psfs)):
+                psf_file = os.path.join(psfdir, f'nu{module}2dpsfen{i+1}_20100101v001.fits')
+                psfs[f'{i+1}'] = fits.getdata(psf_file, index)
+
+        for i in range(len(psfs)):
+            temp = rotate(psfs[f'{i+1}'], phi, reshape=False)
+            psf_rot[f'{i+1}'] += (dur / tot_dur) * temp
+
+
+    # Set up output file name:
+    for i in range(len(psfs)):
+        outname = os.path.join(out_dir, f'psf2d_{out_prefix}_{emid[i]}keV_{module}.fits')
+        fits.writeto(outname, psf_rot[f'{i+1}'], overwrite=True)
+    
+    return
+    
