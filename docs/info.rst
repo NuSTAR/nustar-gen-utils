@@ -1,12 +1,13 @@
 .. module:: nustar_gen
 
-Informational and Metadata classes
-==================================
-
-
+Info Class
+===========
 
 .. autoclass:: nustar_gen.info.NuSTAR
     :members:
+
+Observation Class
+==================
 
 .. autoclass:: nustar_gen.info.Observation
     :members:
