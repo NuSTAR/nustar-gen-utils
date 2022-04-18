@@ -11,10 +11,13 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
+    'sphinx.ext.autodoc',  # Core library for html generation from docstrings
+    'sphinx.ext.autosummary'  # Create neat summary tables
 ]
-templates_path = ["_templates"]
 source_suffix = ".rst"
 master_doc = "index"
+autosummary_generate = True  # Turn on sphinx.ext.autosummary
+templates_path = ["_templates"]
 
 # General information about the project.
 project = u"nustar-gen-utils"
