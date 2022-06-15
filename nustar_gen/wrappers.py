@@ -414,7 +414,7 @@ def make_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False, usrgti
         os.system("rm "+outfile)
     xsel_file = _make_xselect_commands(infile, outfile, elow, ehigh, usrgti=usrgti)
     os.system(f"xselect @{xsel_file} > {logfile} 2>&1")
-    os.system("rm -r -f "+xsel_file)
+#    os.system("rm -r -f "+xsel_file)
     
     return outfile
 
@@ -831,7 +831,7 @@ def make_det1_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False):
     
     return outfile
 
-def extract_det1_events(infile, regfile, elow=0., ehigh=165., clobber=True, outpath=False):
+def extract_det1_events(infile, regfile, elow=1.6, ehigh=165., clobber=True, outpath=False):
     '''
     Spawn an xselect instance that produces a new event file screened using a det1 region
     file.
@@ -910,7 +910,7 @@ def extract_det1_events(infile, regfile, elow=0., ehigh=165., clobber=True, outp
     rname = os.path.splitext(rshort)[0]
     
     # Generate outfile name
-    if ( (elow == 0. ) & (ehigh==165.)):
+    if ( (elow == 1.6 ) & (ehigh==165.)):
         outfile = os.path.join(outdir, sname+f'_{rname}.evt')
     else:
         outfile = os.path.join(outdir, sname+f'_{elow}to{ehigh}_{rname}.evt')
