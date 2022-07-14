@@ -362,8 +362,8 @@ def validate_det1_region(regfile):
 
     # Check and make sure this is a "pixel" region and not a "sky" region
 
-    assert type(reg[0]) == regions.shapes.circle.CirclePixelRegion, \
-         f'Region coordinate system is not image coordinates!'
+    assert 'Pixel' in f'{type(reg[0])}', \
+         f'Region coordinate system is not image coordinates for {regfile}\n'
 
     # Check to make sure tha the first region in the file is an "include" region
     for ri in reg:
