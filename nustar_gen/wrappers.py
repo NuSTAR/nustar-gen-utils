@@ -826,7 +826,7 @@ def make_det1_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False):
     else:
         os.system("rm "+outfile)
     xsel_file = _make_xselect_commands_det1(infile, outfile, elow, ehigh)
-    os.system("xselect @"+xsel_file)
+    os.system("xselect @"+xsel_file+" > xselect.log")
     os.system("rm -r -f "+xsel_file)
     
     return outfile
@@ -926,7 +926,7 @@ def extract_det1_events(infile, regfile, elow=1.6, ehigh=165., clobber=True, out
     xsel_file = _make_xselect_commands_det1_evts_pifilt(infile, outfile,
                                                         regfile, elow, ehigh)
 
-    os.system("xselect @"+xsel_file)
+    os.system("xselect @"+xsel_file+" > xselect.log")
     os.system("rm -r -f "+xsel_file)
     
     
