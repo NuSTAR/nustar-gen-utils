@@ -917,10 +917,11 @@ def extract_det1_events(infile, regfile, elow=1.6, ehigh=165., clobber=True, out
     else:
         outfile = os.path.join(outdir, sname+f'_{elow}to{ehigh}_{rname}.evt')
 
-    if (os.path.exists(outfile)) & (~clobber):
-        warnings.warn('extract_det1_events: %s exists, use clobber=True to regenerate' % (outfile))
-    else:
-        os.system("rm "+outfile)
+    if (os.path.exists(outfile)):
+        if  (~clobber):
+            warnings.warn('extract_det1_events: %s exists, use clobber=True to regenerate' % (outfile))
+        else:
+            os.system("rm "+outfile)
         
     
         
