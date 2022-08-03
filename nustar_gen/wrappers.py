@@ -408,10 +408,11 @@ def make_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False, usrgti
     outfile = os.path.join(outdir, sname+f'_{elow}to{ehigh}keV.fits')
     logfile = os.path.join(outdir, sname+f'_{elow}to{ehigh}keV.log')
     
-    if (os.path.exists(outfile)) & (~clobber):
-        warnings.warn('make_image: %s exists, use clobber=True to regenerate' % (outfile))
-    else:
-        os.system("rm "+outfile)
+    if (os.path.exists(outfile)):
+        if  (~clobber):
+            warnings.warn('make_image: %s exists, use clobber=True to regenerate' % (outfile))
+        else:
+            os.system("rm "+outfile)
     xsel_file = _make_xselect_commands(infile, outfile, elow, ehigh, usrgti=usrgti)
     os.system(f"xselect @{xsel_file} > {logfile} 2>&1")
 #    os.system("rm -r -f "+xsel_file)
@@ -821,12 +822,13 @@ def make_det1_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False):
     # Generate outfile name
     outfile = os.path.join(outdir, sname+f'_{elow}to{ehigh}keV_det1.fits')
        
-    if (os.path.exists(outfile)) & (~clobber):
-        warnings.warn('make_image: %s exists, use clobber=True to regenerate' % (outfile))
-    else:
-        os.system("rm "+outfile)
+    if (os.path.exists(outfile)):
+        if (~clobber):
+            warnings.warn('make_image: %s exists, use clobber=True to regenerate' % (outfile))
+        else:
+            os.system("rm "+outfile)
     xsel_file = _make_xselect_commands_det1(infile, outfile, elow, ehigh)
-    os.system("xselect @"+xsel_file)
+    os.system("xselect @"+xsel_file+" > xselect.log")
     os.system("rm -r -f "+xsel_file)
     
     return outfile
@@ -915,10 +917,11 @@ def extract_det1_events(infile, regfile, elow=1.6, ehigh=165., clobber=True, out
     else:
         outfile = os.path.join(outdir, sname+f'_{elow}to{ehigh}_{rname}.evt')
 
-    if (os.path.exists(outfile)) & (~clobber):
-        warnings.warn('extract_det1_events: %s exists, use clobber=True to regenerate' % (outfile))
-    else:
-        os.system("rm "+outfile)
+    if (os.path.exists(outfile)):
+        if  (~clobber):
+            warnings.warn('extract_det1_events: %s exists, use clobber=True to regenerate' % (outfile))
+        else:
+            os.system("rm "+outfile)
         
     
         
@@ -926,7 +929,7 @@ def extract_det1_events(infile, regfile, elow=1.6, ehigh=165., clobber=True, out
     xsel_file = _make_xselect_commands_det1_evts_pifilt(infile, outfile,
                                                         regfile, elow, ehigh)
 
-    os.system("xselect @"+xsel_file)
+    os.system("xselect @"+xsel_file+" > xselect.log")
     os.system("rm -r -f "+xsel_file)
     
     
