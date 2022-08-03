@@ -277,7 +277,7 @@ def make_straylight_arf(det1im, regfile, filt_file, mod, obs):
     import glob
     from nustar_gen import io
     from nustar_gen.utils import energy_to_chan
-    
+    import subprocess
     
         # Check to see that all files exist:
     assert os.path.isfile(det1im), \
@@ -315,11 +315,12 @@ def make_straylight_arf(det1im, regfile, filt_file, mod, obs):
     arf['SPECRESP'] = [area.value for x in arf['SPECRESP']]
 
 
-    caldb = os.environ['CALDB']
-    detabs_files = glob.glob(caldb+f'/**/nu{mod}detabs*', recursive=True)
-    use = len(detabs_files)-1
+    cmdstring=f"quzcif nustar FPM{mod} DET0 - DETABS - - -"
+    cmds = cmdstring.split()
+    ret = subprocess.check_output(cmds)    
+    detabs_file = (ret.split())[0]
 
-    detabs_hdu = fits.open(detabs_files[use])
+    detabs_hdu = fits.open(detabs_file)
 
     for detind, isc in enumerate(scale):
         detabs = detabs_hdu[detind+1].data
