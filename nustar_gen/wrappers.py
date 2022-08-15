@@ -420,7 +420,7 @@ def make_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False, usrgti
     return outfile
 
 
-def extract_sky_events(infile, regfile, clobber=True, outpath=False):
+def extract_sky_events(infile, regfile, elow=1.6, ehigh=165., clobber=True, outpath=False):
     '''
     Spawn an xselect instance that produces a new event file screened using a sky ds9
     region file.
@@ -435,6 +435,11 @@ def extract_sky_events(infile, regfile, clobber=True, outpath=False):
                 
     Other Parameters
     ----------------
+
+    elow : float
+        Low energy cut to use. Default is 1.6 keV (PI == 0)
+    ehigh : float
+        High energy cut to use. Default is 165 keV.
     
     clobber: boolean, optional, default=True
         Overwrite existing files?
@@ -485,13 +490,17 @@ def extract_sky_events(infile, regfile, clobber=True, outpath=False):
     rname = os.path.splitext(rshort)[0]
     
     # Generate outfile name
-    outfile = os.path.join(outdir, sname+f'_{rname}.evt')
+    if ( (elow == 1.6 ) & (ehigh==165.)):
+        outfile = os.path.join(outdir, sname+f'_{rname}.evt')
+    else:
+        outfile = os.path.join(outdir, sname+f'_{elow}to{ehigh}_{rname}.evt')
 
     if (os.path.exists(outfile)) & (~clobber):
         warnings.warn('extract_sky_events: %s exists, use clobber=True to regenerate' % (outfile))
     else:
         os.system("rm "+outfile)
-    xsel_file = _make_xselect_commands_sky_evts(infile, outfile, regfile)
+    xsel_file = _make_xselect_commands_sky_evts(infile, outfile, 
+                    regfile, elow, ehigh)
     os.system("xselect @"+xsel_file)
     os.system("rm -r -f "+xsel_file)
     
@@ -634,12 +643,13 @@ def apply_gti(infile, gtifile, clobber=True, outpath=False):
     # Generate outfile name
     outfile = os.path.join(outdir, sname+f'_{rname}.evt')
 
-    if (os.path.exists(outfile)) & (~clobber):
-        warnings.warn('apply_gti: %s exists, use clobber=True to regenerate' % (outfile))
-    else:
-        os.system("rm "+outfile)
+    if os.path.exists(outfile):
+        if ~clobber:
+            warnings.warn('apply_gti: %s exists, use clobber=True to regenerate' % (outfile))
+        else:
+            os.system("rm "+outfile)
     xsel_file = _make_xselect_commands_apply_gti(infile, outfile, gtifile)
-    os.system("xselect @"+xsel_file)
+    os.system("xselect @"+xsel_file+" > xsel.log")
     os.system("rm -r -f "+xsel_file)
     
     
@@ -677,7 +687,7 @@ def _make_xselect_commands_apply_gti(infile, outfile, gtifile):
     return 'xsel.xco'
 
 
-def _make_xselect_commands_sky_evts(infile, outfile, regfile):
+def _make_xselect_commands_sky_evts(infile, outfile, regfile, elow, ehigh):
     '''
     Helper script to generate the xselect commands to extract events from
     a given sky region.
@@ -696,6 +706,9 @@ def _make_xselect_commands_sky_evts(infile, outfile, regfile):
     xsel.write(f'{evfile} \n ')
     xsel.write('yes \n')
     xsel.write(f'filter region {regfile} \n')
+    pi_low = energy_to_chan(elow)
+    pi_high = energy_to_chan(ehigh)
+    xsel.write('filter pha_cutoff {} {} \n'.format(pi_low, pi_high))
     xsel.write("extract events\n")
     xsel.write("save events\n")
     xsel.write("%s \n" % outfile)
@@ -848,7 +861,7 @@ def extract_det1_events(infile, regfile, elow=1.6, ehigh=165., clobber=True, out
         the events.
 
     elow: float
-        Lowest energy to use (default is 0 keV)
+        Lowest energy to use (default is 1.6 keV)
     
     ehigh: float
         Highest energy to use (default is 165 keV)
