@@ -634,12 +634,13 @@ def apply_gti(infile, gtifile, clobber=True, outpath=False):
     # Generate outfile name
     outfile = os.path.join(outdir, sname+f'_{rname}.evt')
 
-    if (os.path.exists(outfile)) & (~clobber):
-        warnings.warn('apply_gti: %s exists, use clobber=True to regenerate' % (outfile))
-    else:
-        os.system("rm "+outfile)
+    if os.path.exists(outfile):
+        if ~clobber:
+            warnings.warn('apply_gti: %s exists, use clobber=True to regenerate' % (outfile))
+        else:
+            os.system("rm "+outfile)
     xsel_file = _make_xselect_commands_apply_gti(infile, outfile, gtifile)
-    os.system("xselect @"+xsel_file)
+    os.system("xselect @"+xsel_file+" > xsel.log")
     os.system("rm -r -f "+xsel_file)
     
     
