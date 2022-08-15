@@ -285,7 +285,7 @@ def make_straylight_arf(det1im, regfile, filt_file, mod, obs):
     assert os.path.isfile(regfile), \
         f'straylight_area: Region file not found: {regfile}'
     assert os.path.isfile(filt_file), \
-        f'straylight_area: Event file not found: {evf}'
+        f'straylight_area: Event file not found: {filt_file}'
 
     outdir = obs.out_path
     
