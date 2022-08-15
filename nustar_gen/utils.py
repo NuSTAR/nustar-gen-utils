@@ -47,7 +47,7 @@ def chan_to_energy(chan):
         en = [float(x) *  0.04 + 1.6 for x in chan]
     except:
         en = chan * 0.04 + 1.6
-    return en
+    return np.array(en)
 
 def make_usr_gti(input_gtis, outfile='usrgti.fits', **kwargs):
     '''
