@@ -88,14 +88,15 @@ def make_spectra(infile, mod, src_reg, usrgti=False,
             pass    
         
     stemout = f'nu{seqid}{mod}{mode}_{reg_base}'
-    lc_script = os.path.join(outdir, f'runspec_{stemout}.sh')
-    
-        # Parse GTI file if necessary    
+    # Adjust filename is a GTI file is present:
+
+    # Parse GTI file if necessary    
     if usrgti is not False:
         rshort = os.path.basename(usrgti)
         rname = os.path.splitext(rshort)[0]
         stemout += f'_{rname}'
-   
+    lc_script = os.path.join(outdir, f'runspec_{stemout}.sh')
+
     with open(lc_script, 'w') as f:
         f.write('nuproducts imagefile=NONE lcfile=NONE bkglcfile=NONE ')
         f.write(f'runmkarf={runmkarf} extended={extended} runmkrmf=yes ')
@@ -1118,7 +1119,14 @@ def make_det1_spectra(infile, mod, obs,
     # Use the default stemout unless this is set
     if stemout is False:
         stemout = basename(infile).split('.')[0]
-        
+    
+    
+    # Parse GTI file if necessary    
+    if gtifile is not False:
+        rshort = os.path.basename(gtifile)
+        rname = os.path.splitext(rshort)[0]
+        stemout += f'_{rname}'
+
     lc_script = os.path.join(outdir, f'rundet1spec_{stemout}.sh')
     
    
