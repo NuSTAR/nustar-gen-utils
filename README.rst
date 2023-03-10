@@ -25,10 +25,12 @@ Installation
 We require at least python 3.7 for this installation as well as the other dependencies
 listed in requirements.txt.
 
-To install these via conda, do:
+To install these via conda, first add the conda-forge channel and then install the requirements:
 
 .. code-block:: bash
 
+    conda config --add channels conda-forge 
+    conda config --set channel_priority strict
     conda install --yes --file requirements.txt
 
 In the current version, a development installation is recommended.
