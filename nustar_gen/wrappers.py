@@ -410,10 +410,10 @@ def make_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False, usrgti
     logfile = os.path.join(outdir, sname+f'_{elow}to{ehigh}keV.log')
     
     if (os.path.exists(outfile)):
-        if  (~clobber):
-            warnings.warn('make_image: %s exists, use clobber=True to regenerate' % (outfile))
-        else:
+        if clobber is True:
             os.system("rm "+outfile)
+        else:        
+            warnings.warn('make_image: %s exists, use clobber=True to regenerate' % (outfile))
     xsel_file = _make_xselect_commands(infile, outfile, elow, ehigh, usrgti=usrgti)
     os.system(f"xselect @{xsel_file} > {logfile} 2>&1")
 #    os.system("rm -r -f "+xsel_file)
@@ -837,10 +837,10 @@ def make_det1_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False):
     outfile = os.path.join(outdir, sname+f'_{elow}to{ehigh}keV_det1.fits')
        
     if (os.path.exists(outfile)):
-        if (~clobber):
-            warnings.warn('make_image: %s exists, use clobber=True to regenerate' % (outfile))
-        else:
+        if clobber is True:
             os.system("rm "+outfile)
+        else:
+            warnings.warn('make_image: %s exists, use clobber=True to regenerate' % (outfile))
     xsel_file = _make_xselect_commands_det1(infile, outfile, elow, ehigh)
     os.system("xselect @"+xsel_file+" > xselect.log")
     os.system("rm -r -f "+xsel_file)
