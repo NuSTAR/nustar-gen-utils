@@ -38,6 +38,7 @@ def goes_lightcurve(obs, show_sun=False, show_sky=False, show_impact=True):
     import numpy as np
     from astropy.visualization import time_support
     from astropy.io.fits import getheader, getdata
+    from astropy.time import Time
 
     try:
         from sunpy import timeseries as ts
@@ -53,7 +54,14 @@ def goes_lightcurve(obs, show_sun=False, show_sky=False, show_impact=True):
     tstart = (ns.met_to_time(hdr['TSTART']))
     tend = (ns.met_to_time(hdr['TSTOP']))
     
-    result = Fido.search(a.Time(tstart.fits, tend.fits), a.Instrument("XRS"))
+    if tstart < Time('2019-01-01T01:00:00'):
+        gind = 15
+    else:
+        gind = 17
+    
+    result = Fido.search(a.Time(tstart.fits, tend.fits), a.Instrument("XRS"),
+                        a.goes.SatelliteNumber(gind))
+    
     files = Fido.fetch(result, progress=False)
     goes_all = ts.TimeSeries(files, concatenate=True)
     goes = goes_all.truncate(tstart.iso, tend.iso)
