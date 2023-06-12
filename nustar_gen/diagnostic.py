@@ -2,6 +2,7 @@
 from nustar_gen import info
 ns = info.NuSTAR()
 import os
+import astropy.units as u
 
 def goes_lightcurve(obs, show_sun=False, show_sky=False, show_impact=True):
     """
@@ -189,6 +190,122 @@ def goes_lightcurve(obs, show_sun=False, show_sky=False, show_impact=True):
         ax.add_patch(rect)
 
     plt.show()
-            
+
+def compare_sun_spec(obs,mod='A',src_rad = 2*u.arcmin,
+    en_range = (3, 20), en_bins = 34, ratio = False):
+    """ 
+    Uses the attorb file to generate a spectrum when NuSTAR is in/out
+    of sunlight to check for solar activity.
+    
+    Parameters
+    -----------
+    obs : Class
+        Output from nustar_gen.info.Observation() class
+    
         
+    Other Parameters
+    ----------------
+    mod : str
+        Which module, should 'A' or 'B'. Default is 'A'
+    src_rad : astropy unit
+        Radius to throw away source counts. Default is 2-arcmin
+    en_range : list
+        Energy range to use. Default is (3, 20).
+    en_bins : int
+        Number of bins to use for histogram (default is 34)
+   ratio : bool 
+        Whether to plot the spectra or their ratio. Default is False.
+   
+    Returns
+    -------
+    None
+    """
+    import os
+    import warnings
+    from astropy.utils.exceptions import AstropyWarning
+    warnings.simplefilter('ignore', category=AstropyWarning)
+    warnings.simplefilter('ignore', category=RuntimeWarning)
+    from astropy.table import Table
+    from numpy import interp, histogram, sqrt
+    from astropy.io.fits import getheader
+    from nustar_gen.utils import chan_to_energy
+    
+    
+    import matplotlib.pyplot as plt
+    
+    
+    # Load the 01 event file:
+    evf = obs.science_files[mod][0]
+    
+    
+    # In the future, maybe come back and do the thing where we get rid of the
+    # source and just look at the background. But we typically get rid of that info
+    # 
+    
+    limit_pix = ((src_rad / ns.pixel).cgs).value
+
+    # Check and see if nuskytodet has been run
+    sky2det = os.path.join(obs.evdir, f'nu{obs.seqid}_sky2det{mod}.fits')
+    if not os.path.isfile(sky2det):
+        # Spawn this in the background:
+        attfile = os.path.join(obs.evdir, f'nu{obs.seqid}_att.fits')
+        mastfile = os.path.join(obs.evdir, f'nu{obs.seqid}_mast.fits')        
+        hdr = getheader(obs.evtfiles[mod][0])
+        cmdstring = f"nuskytodet pntra={hdr['RA_OBJ']} pntdec={hdr['DEC_OBJ']} "
+        cmdstring += f"attfile={attfile} instrument=FPM{mod} skydetfile={sky2det}"
+        cmdstring += f" mastaspectfile={mastfile}"
+        print('No sky2det file found, running nuskytodet')
+        
+        sky2det_log = os.path.join(obs.evdir, f'nu{obs.seqid}_sky2det{mod}.log')
+        cmdstring += f'> {sky2det_log}'
+        print(cmdstring)   
+        os.system(cmdstring)        
+    detsrc = Table.read(sky2det, hdu =1)
+    
+    attorbf = os.path.join(obs.evdir, f'nu{obs.seqid}{mod}.attorb')
+    assert os.path.isfile(attorbf), f'Attorb file not found: {attorbf}. Run nupipeline first.'
+    
+    attorb = Table.read(attorbf, hdu=1, memmap=True)
+    evt = Table.read(evf, hdu='EVENTS', memmap=True)
+     
+    evt['SUN'] = interp(evt['TIME'], attorb['TIME'], attorb['SUNSHINE'])
+    xr = interp(evt['TIME'], detsrc['TIME'], detsrc['DET1X'])
+    yr = interp(evt['TIME'], detsrc['TIME'], detsrc['DET1Y'])
+    evt['RAD'] = sqrt((evt['DET1X'] - xr)**2 + (evt['DET1Y'] - yr)**2)
+    
+    
+    no_sun = chan_to_energy(evt[(evt['SUN'] == 0)&(evt['RAD']>limit_pix)]['PI'])
+    sun = chan_to_energy(evt[(evt['SUN'] ==1)&(evt['RAD']>limit_pix)]['PI'])
+    
+    scale_no_sun = (len(no_sun) / len(evt))
+    scale_sun = (len(sun) / len(evt))
+    
+    hist_sun, edges = histogram(sun, range = en_range, bins = en_bins)
+    hist_nosun, edges = histogram(no_sun, range = en_range, bins = en_bins)
+    center = (edges[:-1] + edges[1:])/2
+    
+    if ratio is False:
+        ax = plt.figure(figsize=(12, 8)).subplots()
+        ax.step(center, hist_nosun / scale_no_sun, label = 'No Sun')    
+        ax.step(center, hist_sun / scale_sun, label = 'Sun')    
+        ax.set_xscale('log')
+        ax.set_yscale('log')
+        ax.legend()
+        ax.set_xlabel('Energy (keV)', fontsize=12)
+        ax.set_ylabel('Scaled counts', fontsize=12)
+        plt.show()
+    else:
+        ax = plt.figure(figsize=(12, 8)).subplots()
+        ax.step(center, (hist_sun / scale_sun) / (hist_nosun / scale_no_sun),
+                label = 'Ratio (Sun / No Sun)')    
+        ax.set_xscale('log')
+        ax.set_xlabel('Energy (keV)', fontsize=12)
+        ax.set_ylabel('Ratio', fontsize=12)
+        ax.legend()
+        ax.axhline(1.0, color = 'green')
+        plt.show()
+    
+    
+    
+
     

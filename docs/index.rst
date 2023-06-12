@@ -6,8 +6,8 @@ nustar_gen documentation
 
    readme
    info
+   diagnostic
    utils
    io
    wrappers
    straylight
-   
