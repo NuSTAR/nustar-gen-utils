@@ -55,7 +55,7 @@ def make_spectra(infile, mod, src_reg, usrgti=False,
         Channel number below which bad flag is applied
     group_append: str default value:'grp'
         A subtring which will be appended to the grouped spectra
-        
+
 
     '''
 
@@ -132,7 +132,7 @@ def make_spectra(infile, mod, src_reg, usrgti=False,
             f.write(f'grpmincounts={group_min_count} ')
             f.write(f'grppibadlow={group_pi_bad_low} ')
             f.write(f'grppibadhigh={group_pi_bad_high} ')
-            group_file_name = os.path.join(outdir,f"nu{seqid}{mod}{mode}_{reg_base}_{group_append}.pha ")
+            group_file_name = os.path.join(outdir,f"{stemout}_{group_append}.pha ")
             f.write(f'grpphafile={group_file_name} ')
             
         f.write('clobber=yes')
