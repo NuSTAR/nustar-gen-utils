@@ -410,9 +410,6 @@ def straylight_background(det1im_file='None', sky2det_file='None',
     det1_expo_file : str
         Path to the DET1 effective area file. Should be the DET1 output of
         wrappers.make_exposure_map 
-
-    Optional Parameters
-    -------------------
         
     diag : bool
         Show diagnostic information and make some plots showing what is happening.

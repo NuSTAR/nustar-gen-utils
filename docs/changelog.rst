@@ -1,7 +1,9 @@
-===============
-v0.6 (Date TBD)
-===============
+===========
+Change Log
+===========
 
+v0.6 (Date TBD)
+---------------
 * Now requires Python >= 3.10
 * Now requires astropy.regions >0.7
 * Added grouping keywords to spectral products

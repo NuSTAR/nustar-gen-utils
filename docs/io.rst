@@ -1,6 +1,6 @@
 .. module:: nustar_gen
 
-IO Functions
+I/O Functions
 ==================================
 
 .. autofunction:: nustar_gen.io.find_be_arf

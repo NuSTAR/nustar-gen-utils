@@ -12,7 +12,8 @@ def find_be_arf():
     
     Returns
     -------
-    Full path to the Be window file in the CALDB
+    be_arf_file : str
+        Full path to the Be window file in the CALDB
     
     Examples
     --------
@@ -48,8 +49,8 @@ def find_arf_template():
     
     Returns
     -------
-    Full path to the Be window file, which should be included when this repo is
-    checked out
+    arf_file : str
+        Full path to the Be window file, which should be included when this repo is checked out
     
     Examples
     --------
