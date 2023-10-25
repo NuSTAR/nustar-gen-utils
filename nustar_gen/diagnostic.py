@@ -198,6 +198,7 @@ def goes_lightcurve(obs, show_sun=False, show_sky=False, show_impact=True):
         ax.add_patch(rect)
 
     plt.show()
+    return
 
 def compare_sun_spec(obs,mod='A',src_rad = 2*u.arcmin,
     en_range = (3, 20), en_bins = 34, ratio = False):
@@ -221,7 +222,7 @@ def compare_sun_spec(obs,mod='A',src_rad = 2*u.arcmin,
         Energy range to use. Default is (3, 20).
     en_bins : int
         Number of bins to use for histogram (default is 34)
-   ratio : bool 
+    ratio : bool 
         Whether to plot the spectra or their ratio. Default is False.
    
     Returns
@@ -313,7 +314,7 @@ def compare_sun_spec(obs,mod='A',src_rad = 2*u.arcmin,
         ax.axhline(1.0, color = 'green')
         plt.show()
     
-    
+    return
     
 
     
