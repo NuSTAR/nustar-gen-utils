@@ -1,3 +1,4 @@
+python >=3.10
 astropy
 matplotlib
 jupyter
@@ -5,4 +6,4 @@ h5py
 scikit-image
 sphinx
 sphinx_rtd_theme
-regions==0.7
+regions>=0.7
