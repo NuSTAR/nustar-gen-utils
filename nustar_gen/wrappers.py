@@ -6,6 +6,7 @@ from astropy import units as u
 
 def make_spectra(infile, mod, src_reg, usrgti=False,
     mode='01', bgd_reg='None', outpath='None', runmkarf='yes', extended='no',
+    grouping_flag=False, group_min_count = 30, group_pi_bad_high =1909, group_pi_bad_low =35, group_append='grp',
     oa_hist = False):
     '''
     Generate a script to run nuproducts to extract a source (and optionally
@@ -44,6 +45,17 @@ def make_spectra(infile, mod, src_reg, usrgti=False,
     mode: str
         Optional. Used primarily if you're doing mode06 analysis and need to specify
         output names that are more complicated.
+    grouping_flag: bool
+        Optional. Used to indicate if the grouping of the spectra should be done or not
+    group_min_count: int default value:  30 
+        Minimum count rate used for grppha run
+    group_pi_bad_high: int default value: 1909
+        Channel number above which bad flag is applied 
+    group_pi_bad_low: int default value: 35
+        Channel number below which bad flag is applied
+    group_append: str default value:'grp'
+        A subtring which will be appended to the grouped spectra
+
 
     '''
 
@@ -114,6 +126,14 @@ def make_spectra(infile, mod, src_reg, usrgti=False,
         
         if oa_hist is not False:
             f.write(f'offaxishisto=DEFAULT ')
+        
+        if grouping_flag is not False:
+            f.write(f'rungrppha=yes ')
+            f.write(f'grpmincounts={group_min_count} ')
+            f.write(f'grppibadlow={group_pi_bad_low} ')
+            f.write(f'grppibadhigh={group_pi_bad_high} ')
+            group_file_name = os.path.join(outdir,f"{stemout}_{group_append}.pha ")
+            f.write(f'grpphafile={group_file_name} ')
             
         f.write('clobber=yes')
         
