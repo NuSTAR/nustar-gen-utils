@@ -379,7 +379,7 @@ def validate_det1_region(regfile):
 
     # Check to make sure tha the first region in the file is an "include" region
     for ri in reg:
-        assert ri.meta['include'] is True, \
+        assert ri.meta['include'] == 1, \
             f'\n {regfile} has an exclusion region first! \n Put the source region first instead!'
         break
 
