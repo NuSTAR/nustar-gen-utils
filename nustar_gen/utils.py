@@ -243,7 +243,6 @@ def make_straylight_arf(det1im, regfile, filt_file, mod, obs):
     '''
     Produces an ARF for a given observation. Currently uses counts-weighting to
         determine the contribution of the detabs parameters for each detector.
-        SHOULD PROBABLY BE MOVED TO WRAPPERS OR SOMETHING?
         
     Parameters
     ----------
@@ -345,6 +344,18 @@ def validate_det1_region(regfile):
     """
     Code for making sure that region files that you're trying to use on the DET1
     analysis code are in "image" coordinates
+        
+    Parameters
+    ----------
+    regfile : str
+        Full path to a ds9 region file
+        
+
+
+    Returns
+    -------
+    None
+    
     """
     err=-1
     import regions
@@ -368,10 +379,11 @@ def validate_det1_region(regfile):
 
     # Check to make sure tha the first region in the file is an "include" region
     for ri in reg:
-        assert ri.meta['include'] is True, \
+        assert ri.meta['include'] == 1, \
             f'\n {regfile} has an exclusion region first! \n Put the source region first instead!'
         break
 
+    return
 
 def straylight_background(det1im_file='None', sky2det_file='None',
                           reg_file = 'None', det1_expo_file = 'None',
@@ -398,9 +410,6 @@ def straylight_background(det1im_file='None', sky2det_file='None',
     det1_expo_file : str
         Path to the DET1 effective area file. Should be the DET1 output of
         wrappers.make_exposure_map 
-
-    Optional Parameters
-    -------------------
         
     diag : bool
         Show diagnostic information and make some plots showing what is happening.

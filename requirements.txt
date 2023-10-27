@@ -5,4 +5,4 @@ h5py
 scikit-image
 sphinx
 sphinx_rtd_theme
-regions==0.5
+regions>=0.7

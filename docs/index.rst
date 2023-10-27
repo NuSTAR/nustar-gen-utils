@@ -5,6 +5,7 @@ nustar_gen documentation
    :maxdepth: 1
 
    readme
+   changelog
    info
    diagnostic
    utils

@@ -4,15 +4,101 @@ import warnings
 from nustar_gen.utils import energy_to_chan, validate_det1_region
 from astropy import units as u
 
+def make_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False, usrgti=False):
+    '''
+    Spawn an xselect instance that produces the image in the energy range.
+
+    Parameters
+    ----------
+    infile: str
+        Full path to the file that you want to process
+    elow: float
+        Low-energy band for the image. Default is 3 keV.
+    ehigh: float
+        High-energy band for the image. Default is 20 keV.
+        
+    Other Parameters
+    ----------------
+    
+    clobber: boolean, optional, default=True
+        Overwrite existing files?
+
+    outpath: str, optional, default=os.path.dirname(infile)
+        Set the destination for output. Defaults to same location as infile.
+   
+    usrgti : str, optional, default = False
+        Use a GTI file to time-fitler the data (see nustar_gen.utils.make_usr_gti)
+        If False, do nothing.
+   
+    Return
+    -------
+    outfile: str
+        The full path to the output image.
+   
+    '''
+    # Make sure environment is set up properly
+    _check_environment()
+
+    # Check if input file exists:
+    
+    # Account for the case where you only get the filename (i.e. if you're
+    # in the current working directory)
+    infile = os.path.abspath(infile)
+    
+    try:
+        with open(infile) as f:
+            pass
+    except IOError:
+        raise IOError("make_image: File does not exist %s" % (infile))
+
+    if not outpath:
+        outdir=os.path.dirname(infile)
+    else:
+        outdir=outpath
+        try:
+            os.makedirs(outdir)
+        except FileExistsError:
+    # directory already exists
+            pass
+    
+    # Trim the filename:
+    sname=os.path.basename(infile)
+    if sname.endswith('.gz'):
+        sname = os.path.splitext(sname)[0]
+    sname = os.path.splitext(sname)[0]
+    
+
+    if usrgti is not False:
+        rshort = os.path.basename(usrgti)
+        rname = os.path.splitext(rshort)[0]
+        sname += f'_{rname}'
+
+    
+    # Generate outfile name
+    outfile = os.path.join(outdir, sname+f'_{elow}to{ehigh}keV.fits')
+    logfile = os.path.join(outdir, sname+f'_{elow}to{ehigh}keV.log')
+    
+    if (os.path.exists(outfile)):
+        if clobber is True:
+            os.system("rm "+outfile)
+        else:        
+            warnings.warn('make_image: %s exists, use clobber=True to regenerate' % (outfile))
+    xsel_file = _make_xselect_commands(infile, outfile, elow, ehigh, usrgti=usrgti)
+    os.system(f"xselect @{xsel_file} > {logfile} 2>&1")
+#    os.system("rm -r -f "+xsel_file)
+    
+    return outfile
+
 def make_spectra(infile, mod, src_reg, usrgti=False,
     mode='01', bgd_reg='None', outpath='None', runmkarf='yes', extended='no',
     grouping_flag=False, group_min_count = 30, group_pi_bad_high =1909, group_pi_bad_low =35, group_append='grp',
     oa_hist = False):
     '''
     Generate a script to run nuproducts to extract a source (and optionally
-    a background) spectrum along with their response files.
+    a background) spectrum along with their response files. Does not automatically
+    run this script (must be run from the command line) separately.
     
-    Always runs numkrmf and numkarf for now.
+    Always runs numkrmf.
     
     Parameters
     ----------
@@ -30,21 +116,23 @@ def make_spectra(infile, mod, src_reg, usrgti=False,
     Other Parameters
     -------------------
     
-
-    bgd_reg: str
-        If not 'None', then must be the full path to the background region file
-
-    barycorr: bool 
-    
-    outpath: str
-        Optional. Default is to put the lightcurves in the same location as infile
-        
-    usrgti: str
-        Optional. Full path to the GTI that you want to apply to the spectrum.
-        
-    mode: str
+    usrgti : str, optional, default=False
+        If not False must be the full path to the GTI that you want to apply
+        to the spectrum.
+    mode: str, optional, default = '01'
         Optional. Used primarily if you're doing mode06 analysis and need to specify
-        output names that are more complicated.
+        output names that are more complicated.    
+    bgd_reg: str, optional, default='None'
+        If not 'None', then must be the full path to the background region file
+    outpath: str
+        Output path for the resulting spectra. Default is to put the spectra in
+        the same location as infile.
+    runmkarf : str, optional, default='yes'
+        Flag for whether or not to generate an ARF. Default is 'yes'.
+        Alternative is 'no'.
+    extended : str, optional, default='no'
+        Flag for whether or not to use the extended ARF. Default is 'no'.
+        Alternative is 'yes'.
     grouping_flag: bool
         Optional. Used to indicate if the grouping of the spectra should be done or not
     group_min_count: int default value:  30 
@@ -56,6 +144,10 @@ def make_spectra(infile, mod, src_reg, usrgti=False,
     group_append: str default value:'grp'
         A subtring which will be appended to the grouped spectra
 
+    Returns
+    --------
+    scr : str
+        Path to the resulting shell script
 
     '''
 
@@ -145,7 +237,8 @@ def make_lightcurve(infile, mod, src_reg,
     barycorr=False, time_bin=100*u.s, mode='01',usrgti=False,
     bgd_reg='None', outpath='None', elow=3, ehigh=20):
     '''
-    Generate a script to run nuproducts
+    Generate a script to run nuproducts to make a lightcurve. Script must be run
+    from the command line.
     
     Parameters
     ----------
@@ -163,28 +256,29 @@ def make_lightcurve(infile, mod, src_reg,
     Other Parameters
     -------------------
 
-    bgd_reg: str
-        If not 'None', then must be the full path to the background region file
-
-    barycorr: bool 
-        Default is 'False'. If 'True', then queries the infile for the OBJ J2000
+    barycorr: bool, optional, default=False
+        If True, then queries the infile for the OBJ J2000
         coordinates and uses these for the barycenter correction.
-        
-    elow: float
-        Low-eneryg bound. Default is 3 keV.
-    
-    ehigh: float
-        High-energy bound. Default is 20 keV.
-    
-    time_bin: astropy unit
-        Length of the time bin. Default is 100*u.s. Min is 1*u.s
-    
-    outpath: str
-        Optional. Default is to put the lightcurves in the same location as infile
-        
-    mode: str
-        Optional. Used primarily if you're doing mode06 analysis and need to specify
+    time_bin: astropy unit, options, default=100
+        Length of the time bin. Min is 1*u.s
+    mode: str, optional, default = '01'
+        Used primarily if you're doing mode06 analysis and need to specify
         output names that are more complicated.
+    usrgti : str, optional, default=False
+        If not False, must be the full path to the GTI that you want to apply to the spectrum.
+    bgd_reg: str, optional, Default='None'
+        If not 'None', then must be the full path to the background region file
+    outpath: str, optional
+        Optional. Default is to put the lightcurves in the same location as infile
+    elow: float, optional, default = 3
+        Low-energy bound in keV
+    ehigh: float, optional, default = 20
+        High-energy bound in keV
+    
+    Returns
+    --------
+    scr : str
+        Path to the resulting shell script
 
     '''
 
@@ -297,6 +391,11 @@ def make_exposure_map(obs, mod, vign_energy = False,
     det_expo : boolean, optional, default=False
         Whether or not to retain the DET1 exposure map file
 
+    Returns
+    --------
+    scr : str
+        Path to the script
+
     '''
     import glob
     
@@ -355,96 +454,12 @@ def make_exposure_map(obs, mod, vign_energy = False,
     return expo_script
 
 
-def make_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False, usrgti=False):
-    '''
-    Spawn an xselect instance that produces the image in the energy range.
-
-    Parameters
-    ----------
-    infile: str
-        Full path to the file that you want to process
-    elow: float
-        Low-energy band for the image. Default is 3 keV.
-    ehigh: float
-        High-energy band for the image. Default is 20 keV.
-        
-    Other Parameters
-    ----------------
-    
-    clobber: boolean, optional, default=True
-        Overwrite existing files?
-
-    outpath: str, optional, default=os.path.dirname(infile)
-        Set the destination for output. Defaults to same location as infile.
-   
-    usrgti : str, optional, default = False
-        Use a GTI file to time-fitler the data (see nustar_gen.utils.make_usr_gti)
-        If False, do nothing.
-   
-    Return
-    -------
-    outfile: str
-        The full path to the output image.
-   
-    '''
-    # Make sure environment is set up properly
-    _check_environment()
-
-    # Check if input file exists:
-    
-    # Account for the case where you only get the filename (i.e. if you're
-    # in the current working directory)
-    infile = os.path.abspath(infile)
-    
-    try:
-        with open(infile) as f:
-            pass
-    except IOError:
-        raise IOError("make_image: File does not exist %s" % (infile))
-
-    if not outpath:
-        outdir=os.path.dirname(infile)
-    else:
-        outdir=outpath
-        try:
-            os.makedirs(outdir)
-        except FileExistsError:
-    # directory already exists
-            pass
-    
-    # Trim the filename:
-    sname=os.path.basename(infile)
-    if sname.endswith('.gz'):
-        sname = os.path.splitext(sname)[0]
-    sname = os.path.splitext(sname)[0]
-    
-
-    if usrgti is not False:
-        rshort = os.path.basename(usrgti)
-        rname = os.path.splitext(rshort)[0]
-        sname += f'_{rname}'
-
-    
-    # Generate outfile name
-    outfile = os.path.join(outdir, sname+f'_{elow}to{ehigh}keV.fits')
-    logfile = os.path.join(outdir, sname+f'_{elow}to{ehigh}keV.log')
-    
-    if (os.path.exists(outfile)):
-        if clobber is True:
-            os.system("rm "+outfile)
-        else:        
-            warnings.warn('make_image: %s exists, use clobber=True to regenerate' % (outfile))
-    xsel_file = _make_xselect_commands(infile, outfile, elow, ehigh, usrgti=usrgti)
-    os.system(f"xselect @{xsel_file} > {logfile} 2>&1")
-#    os.system("rm -r -f "+xsel_file)
-    
-    return outfile
 
 
 def extract_sky_events(infile, regfile, elow=1.6, ehigh=165., clobber=True, outpath=False):
     '''
-    Spawn an xselect instance that produces a new event file screened using a sky ds9
-    region file.
+    Spawn an xselect instance that produces a new event file screened
+    using a sky ds9 region file.
     
     Parameters
     ----------
@@ -457,14 +472,12 @@ def extract_sky_events(infile, regfile, elow=1.6, ehigh=165., clobber=True, outp
     Other Parameters
     ----------------
 
-    elow : float
-        Low energy cut to use. Default is 1.6 keV (PI == 0)
-    ehigh : float
-        High energy cut to use. Default is 165 keV.
-    
+    elow : float, optional, default=3
+        Low energy cut to use.
+    ehigh : float, optional, default=20
+        High energy cut to use.
     clobber: boolean, optional, default=True
         Overwrite existing files?
-
     outpath: str, optional, default=os.path.dirname(infile)
         Set the destination for output. Defaults to same location as infile.
    
@@ -546,9 +559,9 @@ def barycenter_events(obs, infile, mod='A', barycorr_pars=None):
     Other Parameters
     -------------------
 
-    barycorr_pars: dict
-        additional parameters to be passed to barycorr,
-        in the format {'refframe': 'icrs', 'ra': 123.456}
+    barycorr_pars: dict, optional, default=None
+        If not None, must be a dict giving additional parameters to be
+        passed to barycorr, in the format {'refframe': 'icrs', 'ra': 123.456}
 
     '''
 
