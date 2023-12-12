@@ -312,8 +312,8 @@ class Observation():
         for mod in self.evtfiles:
             science_files[mod] = []
             for file in self.evtfiles[mod]:
-                if ( (f'{mod}01' in file) | (f'{mod}06' in file) ) &  \
-                    ( (file.endswith('gz') ) | \
+                if ( (f'{mod}01' in file) or (f'{mod}06' in file) ) and  \
+                    ( (file.endswith('gz') ) or \
                     (file.endswith('evt') ) ):
                     science_files[mod].extend([file])
             

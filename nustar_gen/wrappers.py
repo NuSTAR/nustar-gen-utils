@@ -524,15 +524,16 @@ def extract_sky_events(infile, regfile, elow=1.6, ehigh=165., clobber=True, outp
     rname = os.path.splitext(rshort)[0]
     
     # Generate outfile name
-    if ( (elow == 1.6 ) & (ehigh==165.)):
+    if ( (elow == 1.6 ) and (ehigh==165.)):
         outfile = os.path.join(outdir, sname+f'_{rname}.evt')
     else:
         outfile = os.path.join(outdir, sname+f'_{elow}to{ehigh}_{rname}.evt')
 
-    if (os.path.exists(outfile)) & (~clobber):
-        warnings.warn('extract_sky_events: %s exists, use clobber=True to regenerate' % (outfile))
-    else:
-        os.system("rm "+outfile)
+    if (os.path.exists(outfile)):
+        if not clobber:
+            warnings.warn('extract_sky_events: %s exists, use clobber=True to regenerate' % (outfile))
+        else:
+            os.system("rm "+outfile)
     xsel_file = _make_xselect_commands_sky_evts(infile, outfile, 
                     regfile, elow, ehigh)
     os.system("xselect @"+xsel_file)
@@ -678,7 +679,7 @@ def apply_gti(infile, gtifile, clobber=True, outpath=False):
     outfile = os.path.join(outdir, sname+f'_{rname}.evt')
 
     if os.path.exists(outfile):
-        if ~clobber:
+        if not clobber:
             warnings.warn('apply_gti: %s exists, use clobber=True to regenerate' % (outfile))
         else:
             os.system("rm "+outfile)
@@ -959,13 +960,13 @@ def extract_det1_events(infile, regfile, elow=1.6, ehigh=165., clobber=True, out
     rname = os.path.splitext(rshort)[0]
     
     # Generate outfile name
-    if ( (elow == 1.6 ) & (ehigh==165.)):
+    if ( (elow == 1.6 ) and (ehigh==165.)):
         outfile = os.path.join(outdir, sname+f'_{rname}.evt')
     else:
         outfile = os.path.join(outdir, sname+f'_{elow}to{ehigh}_{rname}.evt')
 
     if (os.path.exists(outfile)):
-        if  (~clobber):
+        if not clobber:
             warnings.warn('extract_det1_events: %s exists, use clobber=True to regenerate' % (outfile))
         else:
             os.system("rm "+outfile)
