@@ -128,9 +128,12 @@ def make_spectra(infile, mod, src_reg, usrgti=False,
     outpath: str
         Output path for the resulting spectra. Default is to put the spectra in
         the same location as infile.
-    runmkarf : str, optional, default='yes'
-        Flag for whether or not to generate an ARF. Default is 'yes'.
-        Alternative is 'no'.
+    runmkarf : bool, optional, default=True
+        Flag for whether or not to generate an ARF.
+        Alternative is False.
+    runmkarf : bool, optional, default=True
+        Flag for whether or not to generate an RMF.
+        Alternative is False.
     extended : str, optional, default='no'
         Flag for whether or not to use the extended ARF. Default is 'no'.
         Alternative is 'yes'.
