@@ -6,7 +6,7 @@ NuSTAR General Utilities
 
 
 
-Repository for (hopefully) useful NuSTAR python tools
+Repository NuSTAR python tools
 --------------------------------------
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -17,7 +17,22 @@ Nuclear Spectroscopic Telescope ARray
     :target: http://www.nustar.caltech.edu
     :alt: NuSTAR
 
+Rationale and Scope
+-------------------
 
+This distribution is a set of python classes and wrapper scripts intended to make analysis of NuSTAR data more convenient for the user.
+Underneath all of this code is the `NuSTAR Data Analysis Software (NuSTARDAS)  <https://heasarc.gsfc.nasa.gov/docs/nustar/analysis/>`_ maintained
+at the HEASARC by the NuSTAR and ASDC software development teams. The code in this repo provides NuSTAR-specific, "user friedly" tools
+to allow scripting of the underlying NuSTARDAS routines. We've provided a number of jupyter notebooks for common tasks. There are also
+several "non-common" analysis tasks (like analyzing stray light or performing diagnostic test to see if an observation is affected by
+solar flares) that also have examples here.
+
+Wherever possible, we've used standard astropy formalism. Though we do note that this repo has been under development for a number of years
+now. This code is maintained by just a few individuals, so going back and updating existing (working) code sometimes lag changes introduced
+in astropy.
+
+We hope you find these tools useful! At some point we will get around to putting the code somewhere that it citeable, but that has not happened
+yet. So if you do use these tools, please simply acknowledge their use in your papers.
 
 Installation
 ------------
@@ -42,15 +57,7 @@ From the shell:
 
 Documentation
 -------------
-To build the documentation, from the shell:
-
-.. code-block:: bash
-
-    sphinx-build docs docs/_build
-
-And then open the docs/_build/index.html in your browser.
-
-Or, see the readthedocs documentation: |Readthedocs|
+We recommend just referencing the latest readthedocs: |Readthedocs|
 
 
 Contributing
