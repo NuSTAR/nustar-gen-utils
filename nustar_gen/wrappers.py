@@ -90,9 +90,10 @@ def make_image(infile, elow = 3, ehigh = 20, clobber=True, outpath=False, usrgti
     return outfile
 
 def make_spectra(infile, mod, src_reg, usrgti=False,
-    mode='01', bgd_reg='None', outpath='None', runmkarf='yes', extended='no',
-    grouping_flag=False, group_min_count = 30, group_pi_bad_high =1909, group_pi_bad_low =35, group_append='grp',
-    oa_hist = False):
+    mode='01', bgd_reg='None', outpath='None', runmkarf=True,
+    runmkrmf=True, extended='no',
+    grouping_flag=False, group_min_count = 30, group_pi_bad_high =1909,
+    group_pi_bad_low =35, group_append='grp',oa_hist = False):
     '''
     Generate a script to run nuproducts to extract a source (and optionally
     a background) spectrum along with their response files. Does not automatically
@@ -127,9 +128,12 @@ def make_spectra(infile, mod, src_reg, usrgti=False,
     outpath: str
         Output path for the resulting spectra. Default is to put the spectra in
         the same location as infile.
-    runmkarf : str, optional, default='yes'
-        Flag for whether or not to generate an ARF. Default is 'yes'.
-        Alternative is 'no'.
+    runmkarf : bool, optional, default=True
+        Flag for whether or not to generate an ARF.
+        Alternative is False.
+    runmkarf : bool, optional, default=True
+        Flag for whether or not to generate an RMF.
+        Alternative is False.
     extended : str, optional, default='no'
         Flag for whether or not to use the extended ARF. Default is 'no'.
         Alternative is 'yes'.
@@ -201,9 +205,20 @@ def make_spectra(infile, mod, src_reg, usrgti=False,
         stemout += f'_{rname}'
     lc_script = os.path.join(outdir, f'runspec_{stemout}.sh')
 
+    if runmkarf is True:
+        arfstring='yes'
+    else:
+        arfstring='no'
+        
+    if runmkrmf is True:
+        rmfstring='yes'
+    else:
+        rmfstring='no'
+
+
     with open(lc_script, 'w') as f:
         f.write('nuproducts imagefile=NONE lcfile=NONE bkglcfile=NONE ')
-        f.write(f'runmkarf={runmkarf} extended={extended} runmkrmf=yes ')
+        f.write(f'runmkarf={arfstring} extended={extended} runmkrmf={rmfstring} ')
         f.write(f'indir={evdir} outdir={outdir} instrument=FPM{mod} ')
         f.write(f'steminputs=nu{seqid} stemout={stemout} ')
         f.write(f'srcregionfile={src_reg} ')
