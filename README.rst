@@ -40,20 +40,54 @@ Installation
 We require at least python 3.7 for this installation as well as the other dependencies
 listed in requirements.txt.
 
-To install these via conda, first add the conda-forge channel and then install the requirements:
+We recommend installing nustar-gen-utils in its own conda environment. To do this, do the
+following:
+
+.. code-block:: bash
+
+    conda create --name nustar python
+
+Now activate the nustar environment:
+
+.. code-block:: bash
+
+    conda activate nustar
+
+Add the conda-forge channel and then install the requirements:
 
 .. code-block:: bash
 
     conda config --add channels conda-forge 
     conda config --set channel_priority strict
+    
+Move to your working directory (example: $HOME/github) and pull down the latest version of the repo:
+
+.. code-block:: bash
+
+    cd $HOME/github
+    git clone https://github.com/NuSTAR/nustar-gen-utils.git
+    
+...which will create a nustar-gen-utils directory. To install the repository:
+
+.. code-block:: bash
+
+    cd nustar-gen-utils
     conda install --yes --file requirements.txt
 
-In the current version, a development installation is recommended.
-From the shell:
+In the current version, a development installation is recommended. Install this using pip:
 
 .. code-block:: bash
 
     pip install -e .
+    
+
+To check that the nustar-gen-utils has install successfully, start an ipython shell and do
+
+.. code-block:: python
+
+    import nustar_gen 
+
+...if the library imports fine then everything worked.
 
 Documentation
 -------------

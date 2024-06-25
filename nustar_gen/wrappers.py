@@ -218,6 +218,7 @@ def make_spectra(infile, mod, src_reg, usrgti=False,
 
     with open(lc_script, 'w') as f:
         f.write('nuproducts imagefile=NONE lcfile=NONE bkglcfile=NONE ')
+        f.write(f'infile={infile} ')
         f.write(f'runmkarf={arfstring} extended={extended} runmkrmf={rmfstring} ')
         f.write(f'indir={evdir} outdir={outdir} instrument=FPM{mod} ')
         f.write(f'steminputs=nu{seqid} stemout={stemout} ')
