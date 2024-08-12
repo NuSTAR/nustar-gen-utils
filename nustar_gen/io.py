@@ -76,7 +76,7 @@ def write_ds9(coord, rad=60*u.arcsec, outfile='ds9.reg'):
 
     rad : Astropy unit, default value: 60*u.arcsec
 
-    out_file : str, optional, default='ds9.reg'
+    outfile : str, optional, default='ds9.reg'
         Full path to the output region file
     
     
