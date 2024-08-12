@@ -1,6 +1,6 @@
 import os
 import warnings
-
+import astropy.units as u
 
 def find_be_arf():
     '''
@@ -63,3 +63,31 @@ def find_arf_template():
     tempdir = os.path.join(curdir, 'templates')
     arf_file = os.path.join(tempdir, 'nu40101010002_srcA_sr.arf')
     return arf_file
+    
+def write_ds9(coord, rad=60*u.arcsec, outfile='ds9.reg'):
+    '''
+    Exports a ds9 region file for a circular extraction region
+    based on an Astropy coordinates object.
+    
+    Parameters
+    ----------
+    coord : Astropy Coordinates object
+        Coordinates for the source
+
+    rad : Astropy unit, default value: 60*u.arcsec
+
+    outfile : str, optional, default='ds9.reg'
+        Full path to the output region file
+    
+    
+    '''
+    fk5 = coord.fk5
+    with open(outfile, 'w') as f:
+        f.write('# Region file format: DS9\n')
+        f.write('fk5\n')
+        
+        regstring = f'circle({fk5.ra.deg}, {fk5.dec.deg}, {rad.to(u.arcsec).value}")\n'
+        f.write(regstring)
+
+    return    
+    
