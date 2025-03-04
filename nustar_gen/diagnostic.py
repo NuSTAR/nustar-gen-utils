@@ -54,15 +54,15 @@ def goes_lightcurve(obs, show_sun=False, show_sky=False, show_impact=True):
     tstart = (ns.met_to_time(hdr['TSTART']))
     tend = (ns.met_to_time(hdr['TSTOP']))
     
-    if tstart < Time('2019-01-01T01:00:00'):
-        gind = 15
-    else:
-        gind = 17
     
-    result = Fido.search(a.Time(tstart.fits, tend.fits), a.Instrument("XRS"),
-                        a.goes.SatelliteNumber(gind))
-    
-    files = Fido.fetch(result, progress=False)
+    result = Fido.search(a.Time(tstart.fits, tend.fits), a.Resolution('avg1m'),
+                         a.Instrument("XRS"))
+    satellites = result['xrs']['SatelliteNumber'].data
+    sat_id = np.unique(satellites).max()
+    result2 = Fido.search(a.Time(tstart.fits, tend.fits),a.Resolution('avg1m'),
+        a.Instrument("XRS"), a.goes.SatelliteNumber(sat_id))
+
+    files = Fido.fetch(result2, progress=False)
     goes_all = ts.TimeSeries(files, concatenate=True)
     goes = goes_all.truncate(tstart.iso, tend.iso)
 
