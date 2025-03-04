@@ -101,7 +101,7 @@ We love contributions! nustar-gen-utils is open source,
 built on open source, and we'd love to have you hang out in our community.
 
 If you'd like to say hello, drop onto the NuSTAR Slack channel from the
-`NuSTAR Observer's page <https://www.nustar.caltech.edu/page/observers>`_ .
+`NuSTAR Observer's page <https://www.nustar.caltech.edu/page/for-astronomers>`_ .
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
