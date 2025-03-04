@@ -1,5 +1,6 @@
 nustar_gen documentation
 -------------------------
+Build date: |today|
 
 .. toctree::
    :maxdepth: 1
@@ -12,3 +13,4 @@ nustar_gen documentation
    io
    wrappers
    straylight
+   radial_profile
