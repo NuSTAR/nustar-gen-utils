@@ -31,8 +31,10 @@ Wherever possible, we've used standard astropy formalism. Though we do note that
 now. This code is maintained by just a few individuals, so going back and updating existing (working) code sometimes lag changes introduced
 in astropy.
 
-We hope you find these tools useful! At some point we will get around to putting the code somewhere that it citeable, but that has not happened
-yet. So if you do use these tools, please simply acknowledge their use in your papers.
+We hope you find these tools useful! If you do find them useful in your work, please cite us!
+
+.. image:: https://zenodo.org/badge/216671805.svg
+  :target: https://doi.org/10.5281/zenodo.14969198
 
 Installation
 ------------
