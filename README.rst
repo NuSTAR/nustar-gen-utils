@@ -95,8 +95,10 @@ Documentation and Citations
 ---------------------------
 We recommend just referencing the latest readthedocs: |Readthedocs|
 
-nustar-gen-utils does not have a formal code release for citation. But if you do use
-nustar-gen-utils, please mention it iin your paper.
+nustar-gen-utils is released via Creative Commons. Please cite us if you find this set of code useful!
+
+.. image:: https://zenodo.org/badge/216671805.svg
+  :target: https://doi.org/10.5281/zenodo.14969198
 
 NuSTAR instrument and calibration papers are numerous. You can find links to a large
 set of the NuSTAR technical papers on the `NuSTAR Technical Publication Page <https://www.nustar.caltech.edu/page/technical-pubs>`_ .
