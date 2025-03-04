@@ -89,9 +89,16 @@ To check that the nustar-gen-utils has install successfully, start an ipython sh
 
 ...if the library imports fine then everything worked.
 
-Documentation
--------------
+Documentation and Citations
+---------------------------
 We recommend just referencing the latest readthedocs: |Readthedocs|
+
+nustar-gen-utils does not have a formal code release for citation. But if you do use
+nustar-gen-utils, please mention it iin your paper.
+
+NuSTAR instrument and calibration papers are numerous. You can find links to a large
+set of the NuSTAR technical papers on the `NuSTAR Technical Publication Page <https://www.nustar.caltech.edu/page/technical-pubs>`_ .
+
 
 
 Contributing
