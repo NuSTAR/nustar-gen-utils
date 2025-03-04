@@ -2,7 +2,7 @@ from astropy.time import Time, TimeDelta
 import astropy.units as u
 import os
 import glob
-
+import warnings
 
 class NuSTAR():
     '''
@@ -424,22 +424,29 @@ class Observation():
         '''
         Wrappers to download the background report from the SOC:
         '''
-
-        base_html = 'http://www.srl.caltech.edu/NuSTAR_Public/NuSTAROperationSite/'
-        base_html += 'SAA_Filtering/nulyses_reports/'
+        base_html = 'https://nustarsoc.caltech.edu/NuSTAR_Public/NuSTAROperationSite/'
+        saabase_html = base_html + 'SAA_Filtering/saa_reports/'
+        bgd_html = base_html + 'SAA_Filtering/realtime_background/'
+       
         for mod in self.modules:
-            pdf_html = base_html + f'{self.seqid}/nu{self.seqid}_SAA_Report_{mod}.pdf'
+            pdf_html = saabase_html + f'{self.seqid}/nu{self.seqid}_SAA_Report_{mod}.pdf'
 #            print(pdf_html)
             os.system(f'wget {pdf_html}')
             os.system(f'mv {os.path.basename(pdf_html)} {self.out_path}')
+
+            pdf_html = bgd_html + f'{self.seqid}/nu{self.seqid}{mod}_background_map.pdf'
+#            print(pdf_html)
+            os.system(f'wget {pdf_html}')
+            os.system(f'mv {os.path.basename(pdf_html)} {self.out_path}')
+            
         return
     
     
     
-    
-    
-    
-    
-    
+# https://nustarsoc.caltech.edu/NuSTAR_Public/NuSTAROperationSite/SAA_Filtering/realtime_background/91101301002/nu91101301002_SAA_Report_B.pdf
+# https://nustarsoc.caltech.edu/NuSTAR_Public/NuSTAROperationSite/SAA_Filtering/saa_reports/91101301002/nu91101301002_SAA_Report_A.pdf
+# 
+# https://nustarsoc.caltech.edu/NuSTAR_Public/NuSTAROperationSite/SAA_Filtering/realtime_background/91101301002/nu91101301002A_background_map.pdf    
+
     
     
