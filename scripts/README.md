@@ -14,7 +14,7 @@ the results
 [run_nupipeline_highrate.sh](run_nupipeline_highrate.sh) applies a more lenient electronics filtering
 that can be useful for source rates in excess of 500 cps. Please see
 [this calibration coffee PDF](https://github.com/NuSTAR/calibration_coffee/blob/main/pdf/NuSTAR_CalCoffee_20241002.pdf)
-for additional info.
+for additional info. This version retains veto'ing of events in the anti-coincidence shields.
 
 [run_nupipeline_highrate_noshield.sh](run_nupipeline_highrate_noshield.sh) applies an even more lenient
 electronics filtering that ignores the on-board anti-coincidence radiation
